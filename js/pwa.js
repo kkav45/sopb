@@ -13,13 +13,15 @@ class PWAService {
     // Регистрация Service Worker
     if ('serviceWorker' in navigator) {
       try {
-        this.swRegistration = await navigator.serviceWorker.register('/sw.js');
+        // Путь к sw.js от корня проекта
+        this.swRegistration = await navigator.serviceWorker.register('/asopb-html-prototype/sw.js');
         console.log('[PWA] Service Worker зарегистрирован:', this.swRegistration);
-        
+
         // Проверка обновлений
         this.checkForUpdates();
       } catch (error) {
-        console.error('[PWA] Ошибка регистрации SW:', error);
+        console.log('[PWA] Service Worker не доступен (это нормально для локальной разработки)');
+        // Не блокируем работу приложения при ошибке SW
       }
     }
 
