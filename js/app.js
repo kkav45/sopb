@@ -105,9 +105,6 @@ class App {
   async renderDashboardCharts() {
     if (!window.chartService) return;
 
-    // Уничтожаем старые графики перед созданием новых
-    window.chartService.destroyAll();
-
     // Статистика по оборудованию
     const equipmentStats = {
       equipmentActive: this.equipment.filter(e => e.status === 'active').length,
@@ -138,7 +135,7 @@ class App {
       ...violationsStats
     };
 
-    // Рендерим графики
+    // Рендерим графики (destroyAll вызывается внутри chartService)
     await window.chartService.renderDashboardCharts(stats);
 
     // Обновляем процент соответствия

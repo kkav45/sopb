@@ -281,6 +281,11 @@ class ChartService {
 
   // Данные для дашборда
   async renderDashboardCharts(stats) {
+    await this.load();
+
+    // Уничтожаем все старые графики перед созданием новых
+    this.destroyAll();
+
     // Статус оборудования
     await this.createPieChart('equipmentStatusChart', {
       labels: ['Исправно', 'Требует ТО', 'Неисправно'],
