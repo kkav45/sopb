@@ -283,9 +283,11 @@ class PWAService {
 // Глобальный экземпляр
 window.pwaService = new PWAService();
 
-// Стили для prompt
-const style = document.createElement('style');
-style.textContent = `
+// Стили для prompt (если ещё не добавлены)
+if (!document.getElementById('pwa-styles')) {
+  const pwaStyleElement = document.createElement('style');
+  pwaStyleElement.id = 'pwa-styles';
+  pwaStyleElement.textContent = `
   .install-prompt, .update-prompt {
     position: fixed;
     bottom: -100px;
@@ -376,4 +378,5 @@ style.textContent = `
     }
   }
 `;
-document.head.appendChild(style);
+  document.head.appendChild(pwaStyleElement);
+}

@@ -113,6 +113,9 @@ class App {
   async renderDashboardCharts() {
     if (!window.chartService) return;
 
+    // Уничтожаем старые графики перед созданием новых
+    window.chartService.destroyAll();
+
     // Статистика по оборудованию
     const equipmentStats = {
       equipmentActive: this.equipment.filter(e => e.status === 'active').length,
@@ -307,6 +310,89 @@ class App {
         overlay.closest('.modal').classList.remove('active');
       });
     });
+  }
+
+  setupFormHandlers() {
+    // Обработчик для оборудования
+    const saveEquipmentBtn = document.getElementById('saveEquipmentBtn');
+    if (saveEquipmentBtn) {
+      saveEquipmentBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const form = document.getElementById('equipmentForm');
+        if (form.checkValidity()) {
+          const formData = new FormData(form);
+          const equipmentData = {
+            type: formData.get('type'),
+            typeName: formData.options?.namedItem('type')?.selectedOptions[0]?.text || '',
+            model: formData.get('model'),
+            serialNumber: formData.get('serialNumber'),
+            objectId: formData.get('objectId'),
+            location: formData.get('location'),
+            installDate: formData.get('installDate'),
+            expirationDate: formData.get('expirationDate'),
+            verificationDate: formData.get('verificationDate'),
+            nextVerificationDate: formData.get('nextVerificationDate'),
+            status: formData.get('status')
+          };
+          
+          if (this.editingEquipmentId) {
+            await this.updateEquipment(this.editingEquipmentId, equipmentData);
+            this.editingEquipmentId = null;
+          } else {
+            await this.addEquipment(equipmentData);
+          }
+          document.getElementById('equipmentModal').classList.remove('active');
+        }
+      });
+    }
+
+    // Обработчик для проверок
+    const startInspectionBtn = document.getElementById('startInspectionBtn');
+    if (startInspectionBtn) {
+      startInspectionBtn.addEventListener('click', () => {
+        const equipmentId = document.getElementById('inspectionEquipment').value;
+        const checklistId = document.getElementById('inspectionChecklist').value;
+        
+        if (!equipmentId || !checklistId) {
+          showToast('Выберите оборудование и чек-лист', 'warning');
+          return;
+        }
+        
+        const checklist = window.CHECKLISTS[checklistId];
+        if (checklist) {
+          this.showChecklistPassForm(checklist);
+        }
+      });
+    }
+
+    // Обработчик для нарушений
+    const saveViolationBtn = document.getElementById('saveViolationBtn');
+    if (saveViolationBtn) {
+      saveViolationBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const form = document.getElementById('violationForm');
+        if (form.checkValidity()) {
+          const formData = new FormData(form);
+          const violationData = {
+            objectId: formData.get('objectId'),
+            equipmentId: formData.get('equipmentId'),
+            description: formData.get('description'),
+            norm: formData.get('norm'),
+            koapArticle: formData.get('koapArticle'),
+            deadline: formData.get('deadline'),
+            status: formData.get('status')
+          };
+          
+          if (this.editingViolationId) {
+            await this.updateViolation(this.editingViolationId, violationData);
+            this.editingViolationId = null;
+          } else {
+            await this.addViolation(violationData);
+          }
+          document.getElementById('violationModal').classList.remove('active');
+        }
+      });
+    }
   }
 
   setupSync() {
