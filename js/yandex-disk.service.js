@@ -244,10 +244,24 @@ class YandexDiskService {
   }
 }
 
-// Конфигурация по умолчанию (замените на свои данные после регистрации)
+// ============================================================
+// КОНФИГУРАЦИЯ ИНТЕГРАЦИИ С ЯНДЕКС.ДИСКОМ
+// ============================================================
+// Инструкция: YANDEX_DISK_SETUP.md
+// Регистрация OAuth: https://oauth.yandex.ru/client/new
+
 const YANDEX_CONFIG = {
+  // Client ID (замените на ваш из https://oauth.yandex.ru/client/new)
   clientId: 'YOUR_CLIENT_ID',
+  
+  // Client Secret (замените на ваш)
   clientSecret: 'YOUR_CLIENT_SECRET',
-  redirectUri: window.location.origin + '/auth/yandex/callback',
+  
+  // Redirect URI (должен совпадать с настройками в OAuth)
+  redirectUri: window.location.origin,
+  
+  // Корневая папка на Яндекс.Диске
   rootFolder: 'ASOPB'
 };
+
+// ============================================================

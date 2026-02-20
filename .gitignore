@@ -25,6 +25,9 @@ $RECYCLE.BIN/
 ~$*.xls*
 
 # Локальные конфиги и секреты (ВАЖНО!)
+.env
+.env.local
+.env.*.local
 *.local.json
 *.local.js
 .local.env
@@ -90,3 +93,6 @@ mock-data/
 # Временные папки
 tmp/
 temp/
+
+# GitHub Actions
+.github/workflows/*.local.yml
