@@ -267,7 +267,7 @@ const YANDEX_CONFIG = {
   // Варианты (выберите один):
   
   // 1. Для локальной разработки (простой):
-  redirectUri: 'http://localhost:8000',
+  redirectUri: 'https://kkav45.github.io/sopb/yandex-auth-callback.html',
   
   // 2. Для локальной разработки (с callback файлом):
   // redirectUri: 'http://localhost:8000/yandex-auth-callback.html',
