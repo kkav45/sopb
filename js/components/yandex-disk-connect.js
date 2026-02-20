@@ -10,8 +10,27 @@ class YandexDiskConnect {
     this.isSyncing = false;
     this.lastSyncTime = null;
     
+    // Проверяем callback после загрузки
+    this.checkCallback();
+    
     this.render();
     this.updateState();
+  }
+
+  async checkCallback() {
+    // Проверяем, не вернулись ли мы с авторизации
+    const hash = window.location.hash;
+    if (hash && hash.includes('access_token')) {
+      // Обрабатываем токен
+      const token = await this.yandexDisk.handleCallback();
+      if (token) {
+        showToast('Яндекс.Диск подключён!', 'success');
+        this.updateState();
+        if (this.onConnect) {
+          this.onConnect(token);
+        }
+      }
+    }
   }
 
   async updateState() {
@@ -33,12 +52,9 @@ class YandexDiskConnect {
   }
 
   handleConnect() {
-    if (this.onConnect) {
-      this.onConnect();
-    } else {
-      // По умолчанию перенаправляем на авторизацию
-      window.location.href = this.yandexDisk.getAuthUrl();
-    }
+    // Открываем авторизацию в том же окне (не popup)
+    const authUrl = this.yandexDisk.getAuthUrl();
+    window.location.href = authUrl;
   }
 
   async handleDisconnect() {

@@ -11,7 +11,7 @@ class YandexDiskService {
 
   getAuthUrl() {
     const params = new URLSearchParams({
-      response_type: 'code',
+      response_type: 'token',  // Implicit Flow для клиентских приложений
       client_id: this.config.clientId,
       redirect_uri: this.config.redirectUri,
       scope: 'disk:app_folder'
@@ -19,31 +19,37 @@ class YandexDiskService {
     return `https://oauth.yandex.ru/authorize?${params}`;
   }
 
-  async exchangeCodeForToken(code) {
-    const response = await fetch('https://oauth.yandex.ru/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        grant_type: 'authorization_code',
-        code,
-        client_id: this.config.clientId,
-        client_secret: this.config.clientSecret,
-        redirect_uri: this.config.redirectUri
-      })
-    });
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: response.statusText }));
-      throw new Error(`OAuth error: ${error.error || response.statusText}`);
+  // Обработка токена из callback (yandex-auth-callback.html)
+  async handleCallback() {
+    const hash = window.location.hash;
+    if (!hash || !hash.includes('access_token')) {
+      return null;
     }
 
-    const data = await response.json();
+    const hashParams = new URLSearchParams(hash.substring(1));
+    const accessToken = hashParams.get('access_token');
+    const expiresIn = hashParams.get('expires_in');
+
+    if (!accessToken) {
+      return null;
+    }
+
     this.token = {
-      accessToken: data.access_token,
-      refreshToken: data.refresh_token,
-      expiresAt: Date.now() + data.expires_in * 1000
+      accessToken: accessToken,
+      refreshToken: null,
+      expiresAt: Date.now() + (parseInt(expiresIn) || 31536000) * 1000
     };
     this.saveToken();
+
+    // Очищаем hash
+    window.history.replaceState({}, '', window.location.pathname);
+
+    return this.token;
+  }
+
+  async exchangeCodeForToken(code) {
+    // Этот метод больше не используется для Implicit Flow
+    console.warn('exchangeCodeForToken устарел. Используйте handleCallback()');
     return this.token;
   }
 

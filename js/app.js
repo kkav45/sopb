@@ -31,6 +31,9 @@ class App {
     // Инициализация IndexedDB
     await this.localCache.init();
     
+    // Проверяем OAuth callback (после возврата от Яндекса)
+    await this.checkOAuthCallback();
+    
     // Загрузка данных
     await this.loadData();
     
@@ -46,16 +49,30 @@ class App {
     // Настройка синхронизации
     this.setupSync();
     
-    // Обработка OAuth callback
-    this.handleOAuthCallback();
-    
-    // Запуск авто-синхронизации
-    this.startAutoSync();
-    
     // Настройка обработчиков форм
     this.setupFormHandlers();
     
     console.log('АСОПБ прототип инициализирован');
+  }
+
+  async checkOAuthCallback() {
+    // Проверяем, не вернулись ли мы с авторизации Яндекса
+    const hash = window.location.hash;
+    if (hash && hash.includes('access_token')) {
+      console.log('[OAuth] Обработка токена...');
+      try {
+        const token = await this.yandexDisk.handleCallback();
+        if (token) {
+          console.log('[OAuth] Токен получен и сохранён');
+          showToast('Яндекс.Диск подключён!', 'success');
+          // Очищаем URL
+          window.history.replaceState({}, '', window.location.pathname);
+        }
+      } catch (error) {
+        console.error('[OAuth] Ошибка обработки токена:', error);
+        showToast('Ошибка подключения Яндекс.Диска', 'error');
+      }
+    }
   }
 
   async loadData() {
