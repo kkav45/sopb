@@ -1,5 +1,6 @@
 # auto-deploy.ps1 - Автоматическая загрузка на GitHub
 # Использование: .\auto-deploy.ps1 -message "Ваше сообщение"
+# Репозиторий: https://github.com/kkav45/sopb.git
 
 param(
     [string]$message = "Auto commit: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
