@@ -3,24 +3,23 @@
 class App {
   constructor() {
     // Инициализация сервисов
-    this.yandexDisk = new YandexDiskService(YANDEX_CONFIG);
     this.localCache = new LocalCacheService();
-    this.syncManager = new SyncManagerService(this.yandexDisk, this.localCache);
+    this.syncManager = new SyncManagerService(null, this.localCache);
     this.pdfGenerator = new PdfGeneratorService();
-    
+
     // Данные приложения
     this.objects = [];
     this.equipment = [];
     this.inspections = [];
     this.violations = [];
-    
+
     // Текущая проверка
     this.currentInspection = null;
     this.currentChecklist = null;
-    
+
     // Текущая страница
     this.currentPage = 'dashboard';
-    
+
     // Настройка sync manager
     this.syncManager.setOnStatusChange((status, result) => {
       this.handleSyncStatus(status, result);
@@ -31,9 +30,6 @@ class App {
     try {
       // Инициализация IndexedDB
       await this.localCache.init();
-      
-      // Проверяем OAuth callback (после возврата от Яндекса)
-      await this.checkOAuthCallback();
       
       // Загрузка данных
       await this.loadData();
@@ -57,26 +53,6 @@ class App {
     } catch (error) {
       console.error('Ошибка инициализации:', error);
       showToast('Ошибка загрузки приложения: ' + error.message, 'error');
-    }
-  }
-
-  async checkOAuthCallback() {
-    // Проверяем, не вернулись ли мы с авторизации Яндекса
-    const hash = window.location.hash;
-    if (hash && hash.includes('access_token')) {
-      console.log('[OAuth] Обработка токена...');
-      try {
-        const token = await this.yandexDisk.handleCallback();
-        if (token) {
-          console.log('[OAuth] Токен получен и сохранён');
-          showToast('Яндекс.Диск подключён!', 'success');
-          // Очищаем URL
-          window.history.replaceState({}, '', window.location.pathname);
-        }
-      } catch (error) {
-        console.error('[OAuth] Ошибка обработки токена:', error);
-        showToast('Ошибка подключения Яндекс.Диска', 'error');
-      }
     }
   }
 
@@ -254,8 +230,7 @@ class App {
       calendar: 'Календарь',
       violations: 'Нарушения',
       documents: 'Документы',
-      settings: 'Настройки',
-      yandex: 'Яндекс.Диск'
+      settings: 'Настройки'
     };
     
     document.getElementById('pageTitle').textContent = titles[page] || page;
@@ -288,23 +263,7 @@ class App {
       case 'documents':
         await this.loadDocumentsPage();
         break;
-      case 'yandex':
-        await this.loadYandexPage();
-        break;
     }
-  }
-
-  async loadYandexPage() {
-    // Инициализация компонента Яндекс.Диска
-    setTimeout(() => {
-      const container = document.getElementById('yandexDiskContainer');
-      if (container && this.yandexDisk) {
-        new YandexDiskConnect('yandexDiskContainer', {
-          yandexDisk: this.yandexDisk,
-          onSync: () => this.syncManager.sync()
-        });
-      }
-    }, 100);
   }
 
   async loadCalendarPage() {
