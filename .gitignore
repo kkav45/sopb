@@ -1,0 +1,92 @@
+# .gitignore для АСОПБ прототипа
+
+# Системные файлы Windows
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+
+# IDE и редакторы
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.sublime-project
+*.sublime-workspace
+
+# Временные файлы
+*.log
+*.tmp
+*.temp
+~$*.doc*
+~$*.xls*
+
+# Локальные конфиги и секреты (ВАЖНО!)
+*.local.json
+*.local.js
+.local.env
+*.key
+*.secret
+*.token
+credentials.json
+yandex-oauth-tokens.json
+
+# Node modules (если будет использоваться npm)
+node_modules/
+package-lock.json
+npm-debug.log
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+pip-log.txt
+
+# Базы данных (локальные)
+*.sqlite
+*.sqlite3
+*.db
+*.mdb
+
+# Резервные копии
+*.bak
+*.backup
+*.old
+
+# Архивы (если не нужны в репозитории)
+*.zip
+*.rar
+*.7z
+*.tar.gz
+
+# Большие файлы (>50MB)
+*.iso
+*.img
+*.vmwarevm
+*.vmdk
+
+# Фото и медиа (опционально)
+# photos/
+# uploads/
+# *.jpg
+# *.png
+
+# Лог-файлы сервера
+access.log
+error.log
+
+# Кэш браузера
+.cache/
+
+# Тестовые данные
+test-data/
+mock-data/
+
+# Временные папки
+tmp/
+temp/

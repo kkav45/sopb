@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="АСОПБ — Система пожарной безопасности">
+  <meta name="theme-color" content="#1a1a2e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="АСОПБ">
+  <title>АСОПБ — Пожарная безопасность</title>
+  <link rel="icon" type="image/svg+xml" href="fire.svg">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="fire.svg">
+  <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+  <!-- Боковая панель -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <span class="logo-icon">🔥</span>
+        <span class="logo-text">АСОПБ</span>
+      </div>
+      <button class="sidebar-toggle" id="sidebarToggle">☰</button>
+    </div>
+    
+    <nav class="sidebar-nav">
+      <a href="#dashboard" class="nav-item active" data-page="dashboard">
+        <span class="nav-icon">📊</span>
+        <span class="nav-text">Дашборд</span>
+      </a>
+      <a href="#objects" class="nav-item" data-page="objects">
+        <span class="nav-icon">🏢</span>
+        <span class="nav-text">Объекты</span>
+      </a>
+      <a href="#equipment" class="nav-item" data-page="equipment">
+        <span class="nav-icon">🔧</span>
+        <span class="nav-text">Оборудование</span>
+      </a>
+      <a href="#inspections" class="nav-item" data-page="inspections">
+        <span class="nav-icon">📋</span>
+        <span class="nav-text">Проверки</span>
+      </a>
+      <a href="#calendar" class="nav-item" data-page="calendar">
+        <span class="nav-icon">📅</span>
+        <span class="nav-text">Календарь</span>
+      </a>
+      <a href="#violations" class="nav-item" data-page="violations">
+        <span class="nav-icon">⚠️</span>
+        <span class="nav-text">Нарушения</span>
+      </a>
+      <a href="#documents" class="nav-item" data-page="documents">
+        <span class="nav-icon">📄</span>
+        <span class="nav-text">Документы</span>
+      </a>
+      <a href="#settings" class="nav-item" data-page="settings">
+        <span class="nav-icon">⚙️</span>
+        <span class="nav-text">Настройки</span>
+      </a>
+    </nav>
+    
+    <div class="sidebar-footer">
+      <div class="sync-status" id="syncStatus">
+        <span class="sync-icon">🔄</span>
+        <span class="sync-text">Нет подключения</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Основной контент -->
+  <main class="main-content">
+    <!-- Верхняя панель -->
+    <header class="top-bar">
+      <button class="menu-toggle" id="menuToggle">☰</button>
+      <h1 class="page-title" id="pageTitle">Дашборд</h1>
+      <div class="top-bar-actions">
+        <button class="btn btn-icon" id="qrScanButton" title="Сканировать QR-код">
+          📷
+        </button>
+        <button class="btn btn-icon" id="syncButton" title="Синхронизировать">
+          🔄
+        </button>
+        <span id="onlineStatus" class="online-status online">🟢 Онлайн</span>
+        <div class="user-menu">
+          <span class="user-avatar">👤</span>
+          <span class="user-name">Гость</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Контент страницы -->
+    <div class="page-content" id="pageContent">
+      <!-- Страница: Дашборд -->
+      <div class="page active" id="page-dashboard">
+        <div class="dashboard-grid">
+          <!-- Карточка: Объекты -->
+          <div class="stat-card">
+            <div class="stat-icon">🏢</div>
+            <div class="stat-info">
+              <div class="stat-value" id="statObjects">0</div>
+              <div class="stat-label">Объектов</div>
+            </div>
+          </div>
+          
+          <!-- Карточка: Оборудование -->
+          <div class="stat-card">
+            <div class="stat-icon">🔧</div>
+            <div class="stat-info">
+              <div class="stat-value" id="statEquipment">0</div>
+              <div class="stat-label">Оборудования</div>
+            </div>
+          </div>
+          
+          <!-- Карточка: Проверки -->
+          <div class="stat-card">
+            <div class="stat-icon">📋</div>
+            <div class="stat-info">
+              <div class="stat-value" id="statInspections">0</div>
+              <div class="stat-label">Проверок</div>
+            </div>
+          </div>
+          
+          <!-- Карточка: Нарушения -->
+          <div class="stat-card warning">
+            <div class="stat-icon">⚠️</div>
+            <div class="stat-info">
+              <div class="stat-value" id="statViolations">0</div>
+              <div class="stat-label">Нарушения</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Графики и статистика -->
+        <div class="content-section">
+          <h2 class="section-title">📊 Статистика пожарной безопасности</h2>
+          <div class="charts-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+            <!-- Статус оборудования -->
+            <div class="chart-card">
+              <h4 style="margin-bottom: 15px;">Статус оборудования</h4>
+              <div style="height: 250px;">
+                <canvas id="equipmentStatusChart"></canvas>
+              </div>
+            </div>
+            
+            <!-- Проверки по типам -->
+            <div class="chart-card">
+              <h4 style="margin-bottom: 15px;">Проверки по типам</h4>
+              <div style="height: 250px;">
+                <canvas id="inspectionsByTypeChart"></canvas>
+              </div>
+            </div>
+            
+            <!-- Нарушения по статусам -->
+            <div class="chart-card">
+              <h4 style="margin-bottom: 15px;">Нарушения по статусам</h4>
+              <div style="height: 250px;">
+                <canvas id="violationsStatusChart"></canvas>
+              </div>
+            </div>
+            
+            <!-- Прогресс соответствия -->
+            <div class="chart-card">
+              <h4 style="margin-bottom: 15px;">Общий прогресс</h4>
+              <div style="height: 250px; position: relative;">
+                <canvas id="complianceChart"></canvas>
+                <div id="compliancePercent" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 24px; font-weight: 700; color: #333;">0%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Блок подключения Яндекс.Диска -->
+        <div class="content-section">
+          <h2 class="section-title">☁️ Яндекс.Диск</h2>
+          <div id="yandexDiskContainer"></div>
+        </div>
+
+        <!-- Последние события -->
+        <div class="content-section">
+          <h2 class="section-title">📜 Последние события</h2>
+          <div class="events-list" id="eventsList">
+            <div class="empty-state">
+              <p>Событий пока нет</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Страница: Объекты -->
+      <div class="page" id="page-objects">
+        <div class="page-header">
+          <h2>Объекты защиты</h2>
+          <button class="btn btn-primary" id="addObjectBtn">+ Добавить объект</button>
+        </div>
+        <div class="objects-grid" id="objectsGrid"></div>
+      </div>
+
+      <!-- Страница: Оборудование -->
+      <div class="page" id="page-equipment">
+        <div class="page-header">
+          <h2>Оборудование</h2>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="equipmentSearch" placeholder="🔍 Поиск..." style="padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 6px; font-size: 14px;">
+            <button class="btn btn-primary" id="addEquipmentBtn">+ Добавить</button>
+          </div>
+        </div>
+        <div class="equipment-table" id="equipmentTable"></div>
+      </div>
+
+      <!-- Страница: Проверки -->
+      <div class="page" id="page-inspections">
+        <div class="page-header">
+          <h2>Проверки</h2>
+          <div style="display: flex; gap: 8px;">
+            <select id="inspectionsFilter" style="padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 6px; font-size: 14px;">
+              <option value="">Все типы</option>
+              <option value="monthly">Ежемесячные</option>
+              <option value="quarterly">Ежеквартальные</option>
+              <option value="annual">Ежегодные</option>
+            </select>
+            <button class="btn btn-primary" id="addInspectionBtn">+ Новая проверка</button>
+          </div>
+        </div>
+        <div class="inspections-list" id="inspectionsList"></div>
+      </div>
+
+      <!-- Страница: Календарь (Диаграмма Ганта) -->
+      <div class="page" id="page-calendar">
+        <div class="page-header">
+          <h2>Календарь проверок</h2>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn btn-secondary" id="prevMonthBtn">← Пред.</button>
+            <span id="currentMonthLabel" style="padding: 8px 16px; font-weight: 600; display: flex; align-items: center;"></span>
+            <button class="btn btn-secondary" id="nextMonthBtn">След. →</button>
+          </div>
+        </div>
+        <div class="calendar-container" id="calendarContainer">
+          <div class="gantt-chart" id="ganttChart"></div>
+        </div>
+      </div>
+
+      <!-- Страница: Нарушения -->
+      <div class="page" id="page-violations">
+        <div class="page-header">
+          <h2>Нарушения</h2>
+          <button class="btn btn-primary" id="addViolationBtn">+ Добавить нарушение</button>
+        </div>
+        <div class="violations-list" id="violationsList"></div>
+      </div>
+
+      <!-- Страница: Документы -->
+      <div class="page" id="page-documents">
+        <div class="page-header">
+          <h2>Документы</h2>
+        </div>
+        <div class="documents-grid" id="documentsGrid"></div>
+      </div>
+
+      <!-- Страница: Настройки -->
+      <div class="page" id="page-settings">
+        <div class="page-header">
+          <h2>Настройки</h2>
+        </div>
+        <div class="settings-section">
+          <h3>Подключение Яндекс.Диска</h3>
+          <div id="yandexDiskSettings"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Модальное окно: Объект -->
+  <div class="modal" id="objectModal">
+    <div class="modal-overlay"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="objectModalTitle">Новый объект</h3>
+        <button class="modal-close" data-modal="objectModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="objectForm">
+          <div class="form-group">
+            <label for="objectName">Название объекта *</label>
+            <input type="text" id="objectName" name="name" required placeholder="Административное здание">
+          </div>
+          <div class="form-group">
+            <label for="objectAddress">Адрес *</label>
+            <input type="text" id="objectAddress" name="address" required placeholder="г. Москва, ул. Примерная, д. 1">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="objectClassFPO">Класс ФПО</label>
+              <select id="objectClassFPO" name="classFPO">
+                <option value="Ф1.1">Ф1.1</option>
+                <option value="Ф1.2">Ф1.2</option>
+                <option value="Ф1.3">Ф1.3</option>
+                <option value="Ф1.4">Ф1.4</option>
+                <option value="Ф2.1">Ф2.1</option>
+                <option value="Ф2.2">Ф2.2</option>
+                <option value="Ф2.3">Ф2.3</option>
+                <option value="Ф2.4">Ф2.4</option>
+                <option value="Ф3.1">Ф3.1</option>
+                <option value="Ф3.2">Ф3.2</option>
+                <option value="Ф3.3">Ф3.3</option>
+                <option value="Ф3.4">Ф3.4</option>
+                <option value="Ф3.5">Ф3.5</option>
+                <option value="Ф3.6">Ф3.6</option>
+                <option value="Ф4.1">Ф4.1</option>
+                <option value="Ф4.2">Ф4.2</option>
+                <option value="Ф4.3">Ф4.3</option>
+                <option value="Ф4.4">Ф4.4</option>
+                <option value="Ф5.1">Ф5.1</option>
+                <option value="Ф5.2">Ф5.2</option>
+                <option value="Ф5.3">Ф5.3</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="objectCategory">Категория</label>
+              <select id="objectCategory" name="category">
+                <option value="А">А (повышенная взрывопожароопасность)</option>
+                <option value="Б">Б (взрывопожароопасность)</option>
+                <option value="В1">В1 (пожароопасность)</option>
+                <option value="В2">В2</option>
+                <option value="В3">В3</option>
+                <option value="В4">В4</option>
+                <option value="Г">Г</option>
+                <option value="Д">Д</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="objectArea">Площадь, м²</label>
+              <input type="number" id="objectArea" name="area" placeholder="1500">
+            </div>
+            <div class="form-group">
+              <label for="objectFloors">Этажность</label>
+              <input type="number" id="objectFloors" name="floors" placeholder="3">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="objectResponsible">Ответственный</label>
+            <input type="text" id="objectResponsible" name="responsible" placeholder="ФИО">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-modal="objectModal">Отмена</button>
+        <button class="btn btn-primary" id="saveObjectBtn">Сохранить</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Модальное окно: Оборудование -->
+  <div class="modal" id="equipmentModal">
+    <div class="modal-overlay"></div>
+    <div class="modal-content modal-large">
+      <div class="modal-header">
+        <h3 id="equipmentModalTitle">Новое оборудование</h3>
+        <button class="modal-close" data-modal="equipmentModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="equipmentForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="equipmentType">Тип оборудования *</label>
+              <select id="equipmentType" name="type" required>
+                <option value="">Выберите тип</option>
+                <option value="02-01-001">Извещатель пожарный дымовой</option>
+                <option value="02-01-004">Извещатель пожарный тепловой</option>
+                <option value="02-01-006">Извещатель пожарный пламени</option>
+                <option value="02-01-009">Извещатель ручной пожарный (ИПР)</option>
+                <option value="02-01-010">Приёмно-контрольный прибор (ППК)</option>
+                <option value="02-02-001">Громкоговоритель потолочный</option>
+                <option value="02-02-004">Табло световое «Выход»</option>
+                <option value="02-03-001">Клапан дымовой</option>
+                <option value="02-03-003">Вентилятор дымоудаления</option>
+                <option value="02-04-001">Ороситель спринклерный</option>
+                <option value="02-04-005">Насос пожарный</option>
+                <option value="02-05-001">Огнетушитель порошковый (ОП)</option>
+                <option value="02-05-003">Огнетушитель углекислотный (ОУ)</option>
+                <option value="02-05-008">Шкаф пожарный (ШП-К)</option>
+                <option value="02-06-001">Дверь противопожарная</option>
+                <option value="02-09-001">Лестница пожарная вертикальная</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="equipmentModel">Модель *</label>
+              <input type="text" id="equipmentModel" name="model" required placeholder="ДИП-341">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="equipmentSerial">Серийный номер</label>
+              <input type="text" id="equipmentSerial" name="serialNumber" placeholder="12345678">
+            </div>
+            <div class="form-group">
+              <label for="equipmentObject">Объект *</label>
+              <select id="equipmentObject" name="objectId" required>
+                <option value="">Выберите объект</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="equipmentLocation">Место установки</label>
+            <input type="text" id="equipmentLocation" name="location" placeholder="1 этаж, помещение 101">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="equipmentInstallDate">Дата установки</label>
+              <input type="date" id="equipmentInstallDate" name="installDate">
+            </div>
+            <div class="form-group">
+              <label for="equipmentExpiration">Срок эксплуатации</label>
+              <input type="date" id="equipmentExpiration" name="expirationDate">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="equipmentVerification">Дата поверки</label>
+              <input type="date" id="equipmentVerification" name="verificationDate">
+            </div>
+            <div class="form-group">
+              <label for="equipmentNextVerification">След. поверка</label>
+              <input type="date" id="equipmentNextVerification" name="nextVerificationDate">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="equipmentStatus">Статус</label>
+            <select id="equipmentStatus" name="status">
+              <option value="active">✓ Исправно</option>
+              <option value="maintenance">⚠ Требует ТО</option>
+              <option value="faulty">✕ Неисправно</option>
+            </select>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-modal="equipmentModal">Отмена</button>
+        <button class="btn btn-primary" id="saveEquipmentBtn">Сохранить</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Модальное окно: Новая проверка -->
+  <div class="modal" id="inspectionModal">
+    <div class="modal-overlay"></div>
+    <div class="modal-content modal-large">
+      <div class="modal-header">
+        <h3 id="inspectionModalTitle">Новая проверка</h3>
+        <button class="modal-close" data-modal="inspectionModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="inspectionForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="inspectionEquipment">Оборудование *</label>
+              <select id="inspectionEquipment" name="equipmentId" required>
+                <option value="">Выберите оборудование</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="inspectionType">Тип проверки *</label>
+              <select id="inspectionType" name="type" required>
+                <option value="">Выберите тип</option>
+                <option value="monthly">Ежемесячная</option>
+                <option value="quarterly">Ежеквартальная</option>
+                <option value="annual">Ежегодная</option>
+                <option value="extra">Внеплановая</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="inspectionChecklist">Чек-лист *</label>
+            <select id="inspectionChecklist" name="checklistId" required>
+              <option value="">Выберите чек-лист</option>
+            </select>
+          </div>
+          <div id="checklistContainer" style="margin-top: 16px; display: none;">
+            <h4 style="margin-bottom: 12px;">Чек-лист проверки</h4>
+            <div id="checklistItems"></div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-modal="inspectionModal">Отмена</button>
+        <button class="btn btn-primary" id="startInspectionBtn">Начать проверку</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Модальное окно: Прохождение чек-листа -->
+  <div class="modal" id="checklistPassModal">
+    <div class="modal-overlay"></div>
+    <div class="modal-content modal-large">
+      <div class="modal-header">
+        <h3>Прохождение проверки</h3>
+        <button class="modal-close" data-modal="checklistPassModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="checklistPassContent"></div>
+        <div class="form-group mt-3">
+          <label for="checklistComment">Общий комментарий</label>
+          <textarea id="checklistComment" rows="3" placeholder="Дополнительные замечания..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="checklistSignature"> Подписываю результаты проверки
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-modal="checklistPassModal">Отмена</button>
+        <button class="btn btn-primary" id="completeInspectionBtn">Завершить проверку</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Модальное окно: Нарушение -->
+  <div class="modal" id="violationModal">
+    <div class="modal-overlay"></div>
+    <div class="modal-content modal-large">
+      <div class="modal-header">
+        <h3 id="violationModalTitle">Новое нарушение</h3>
+        <button class="modal-close" data-modal="violationModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="violationForm">
+          <div class="form-group">
+            <label for="violationObject">Объект *</label>
+            <select id="violationObject" name="objectId" required>
+              <option value="">Выберите объект</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="violationEquipment">Оборудование/Система</label>
+            <select id="violationEquipment" name="equipmentId">
+              <option value="">Не применимо</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="violationDescription">Описание нарушения *</label>
+            <textarea id="violationDescription" name="description" rows="3" required placeholder="Опишите суть нарушения"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="violationNorm">Нарушенная норма</label>
+            <input type="text" id="violationNorm" name="norm" placeholder="ППР № 1479, п. 54">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="violationKoap">Статья КоАП</label>
+              <select id="violationKoap" name="koapArticle">
+                <option value="">Выберите статью</option>
+                <option value="20.4 ч.1">20.4 ч.1 (Нарушение требований ПБ)</option>
+                <option value="20.4 ч.6">20.4 ч.6 (Особый противопожарный режим)</option>
+                <option value="20.4 ч.12">20.4 ч.12 (Пожар с ущербом)</option>
+                <option value="20.4 ч.13">20.4 ч.13 (Тяжкий вред/смерть)</option>
+                <option value="19.5 ч.1">19.5 ч.1 (Невыполнение предписания)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="violationDeadline">Срок устранения</label>
+              <input type="date" id="violationDeadline" name="deadline">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="violationStatus">Статус</label>
+            <select id="violationStatus" name="status">
+              <option value="new">Новое</option>
+              <option value="in_progress">В работе</option>
+              <option value="resolved">Устранено</option>
+              <option value="overdue">Просрочено</option>
+            </select>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-modal="violationModal">Отмена</button>
+        <button class="btn btn-primary" id="saveViolationBtn">Сохранить</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Модальное окно: Просмотр акта -->
+  <div class="modal" id="actViewModal">
+    <div class="modal-overlay"></div>
+    <div class="modal-content modal-large">
+      <div class="modal-header">
+        <h3>Акт проверки</h3>
+        <button class="modal-close" data-modal="actViewModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="actContent"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-modal="actViewModal">Закрыть</button>
+        <button class="btn btn-primary" id="downloadActPdf">📄 Скачать PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Модальное окно: QR-сканер -->
+  <div class="modal" id="qrScannerModal">
+    <div class="modal-overlay"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>📷 Сканирование QR-кода</h3>
+        <button class="modal-close" data-modal="qrScannerModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="qr-reader" style="width: 100%;"></div>
+        <p style="text-align: center; color: #666; margin-top: 16px;">
+          Наведите камеру на QR-код оборудования
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Модальное окно: Фотофиксация -->
+  <div class="modal" id="photoModal">
+    <div class="modal-overlay"></div>
+    <div class="modal-content modal-large">
+      <div class="modal-header">
+        <h3>📷 Фотофиксация</h3>
+        <button class="modal-close" data-modal="photoModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="photo-capture-section">
+          <video id="photoVideo" autoplay playsinline style="width: 100%; max-width: 400px; border-radius: 8px; background: #000;"></video>
+          <canvas id="photoCanvas" style="display: none;"></canvas>
+        </div>
+        
+        <div style="text-align: center; margin-top: 16px;">
+          <button class="btn btn-primary" id="takePhotoBtn">📸 Сделать фото</button>
+          <button class="btn btn-secondary" id="switchCameraBtn">🔄 Сменить камеру</button>
+        </div>
+        
+        <div class="photo-preview-section" style="margin-top: 20px;">
+          <h4>Сделанные фото:</h4>
+          <div id="photoPreviewContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; margin-top: 10px;"></div>
+        </div>
+        
+        <div class="photo-upload-section" style="margin-top: 20px;">
+          <h4>Или загрузите фото:</h4>
+          <input type="file" id="photoUpload" accept="image/*" multiple capture="environment" style="margin-top: 8px;">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-modal="photoModal">Закрыть</button>
+        <button class="btn btn-primary" id="savePhotosBtn">💾 Сохранить фото</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Уведомления -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="js/utils.js"></script>
+  <script src="js/data/checklists.js"></script>
+  <script src="js/services/pdf-generator.service.js"></script>
+  <script src="js/services/qr-service.js"></script>
+  <script src="js/services/photo-service.js"></script>
+  <script src="js/services/gantt-service.js"></script>
+  <script src="js/services/chart-service.js"></script>
+  <script src="js/yandex-disk.service.js"></script>
+  <script src="js/local-cache.service.js"></script>
+  <script src="js/sync-manager.service.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/components/yandex-disk-connect.js"></script>
+  <script src="js/pwa.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
