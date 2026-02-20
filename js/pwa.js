@@ -285,7 +285,7 @@ window.pwaService = new PWAService();
 
 // Стили для prompt (если ещё не добавлены)
 if (!document.getElementById('pwa-styles')) {
-  const pwaStyleElement = document.createElement('style');
+  let pwaStyleElement = document.createElement('style');
   pwaStyleElement.id = 'pwa-styles';
   pwaStyleElement.textContent = `
   .install-prompt, .update-prompt {

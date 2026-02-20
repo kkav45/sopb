@@ -58,6 +58,10 @@
         <span class="nav-icon">⚙️</span>
         <span class="nav-text">Настройки</span>
       </a>
+      <a href="#yandex" class="nav-item" data-page="yandex" style="margin-top: auto; border-top: 1px solid rgba(255,255,255,0.1);">
+        <span class="nav-icon">☁️</span>
+        <span class="nav-text">Яндекс.Диск</span>
+      </a>
     </nav>
     
     <div class="sidebar-footer">
@@ -170,12 +174,6 @@
           </div>
         </div>
 
-        <!-- Блок подключения Яндекс.Диска -->
-        <div class="content-section">
-          <h2 class="section-title">☁️ Яндекс.Диск</h2>
-          <div id="yandexDiskContainer"></div>
-        </div>
-
         <!-- Последние события -->
         <div class="content-section">
           <h2 class="section-title">📜 Последние события</h2>
@@ -263,8 +261,25 @@
           <h2>Настройки</h2>
         </div>
         <div class="settings-section">
-          <h3>Подключение Яндекс.Диска</h3>
-          <div id="yandexDiskSettings"></div>
+          <h3>Общие настройки</h3>
+          <p>Параметры приложения</p>
+        </div>
+      </div>
+
+      <!-- Страница: Яндекс.Диск -->
+      <div class="page" id="page-yandex">
+        <div class="page-header">
+          <h2>☁️ Яндекс.Диск</h2>
+        </div>
+        <div class="content-section">
+          <h3 class="section-title">Подключение к облаку</h3>
+          <div id="yandexDiskContainer"></div>
+        </div>
+        <div class="content-section">
+          <h3 class="section-title">📊 Статус синхронизации</h3>
+          <div id="yandexStatus">
+            <p>Информация о синхронизации</p>
+          </div>
         </div>
       </div>
     </div>

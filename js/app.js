@@ -28,31 +28,36 @@ class App {
   }
 
   async init() {
-    // Инициализация IndexedDB
-    await this.localCache.init();
-    
-    // Проверяем OAuth callback (после возврата от Яндекса)
-    await this.checkOAuthCallback();
-    
-    // Загрузка данных
-    await this.loadData();
-    
-    // Обновление дашборда
-    this.updateDashboard();
-    
-    // Настройка навигации
-    this.setupNavigation();
-    
-    // Настройка модальных окон
-    this.setupModals();
-    
-    // Настройка синхронизации
-    this.setupSync();
-    
-    // Настройка обработчиков форм
-    this.setupFormHandlers();
-    
-    console.log('АСОПБ прототип инициализирован');
+    try {
+      // Инициализация IndexedDB
+      await this.localCache.init();
+      
+      // Проверяем OAuth callback (после возврата от Яндекса)
+      await this.checkOAuthCallback();
+      
+      // Загрузка данных
+      await this.loadData();
+      
+      // Обновление дашборда
+      this.updateDashboard();
+      
+      // Настройка навигации
+      this.setupNavigation();
+      
+      // Настройка модальных окон
+      this.setupModals();
+      
+      // Настройка синхронизации
+      this.setupSync();
+      
+      // Настройка обработчиков форм
+      this.setupFormHandlers();
+      
+      console.log('АСОПБ прототип инициализирован');
+    } catch (error) {
+      console.error('Ошибка инициализации:', error);
+      showToast('Ошибка загрузки приложения: ' + error.message, 'error');
+    }
   }
 
   async checkOAuthCallback() {
@@ -246,9 +251,11 @@ class App {
       objects: 'Объекты',
       equipment: 'Оборудование',
       inspections: 'Проверки',
+      calendar: 'Календарь',
       violations: 'Нарушения',
       documents: 'Документы',
-      settings: 'Настройки'
+      settings: 'Настройки',
+      yandex: 'Яндекс.Диск'
     };
     
     document.getElementById('pageTitle').textContent = titles[page] || page;
@@ -281,7 +288,23 @@ class App {
       case 'documents':
         await this.loadDocumentsPage();
         break;
+      case 'yandex':
+        await this.loadYandexPage();
+        break;
     }
+  }
+
+  async loadYandexPage() {
+    // Инициализация компонента Яндекс.Диска
+    setTimeout(() => {
+      const container = document.getElementById('yandexDiskContainer');
+      if (container && this.yandexDisk) {
+        new YandexDiskConnect('yandexDiskContainer', {
+          yandexDisk: this.yandexDisk,
+          onSync: () => this.syncManager.sync()
+        });
+      }
+    }, 100);
   }
 
   async loadCalendarPage() {
