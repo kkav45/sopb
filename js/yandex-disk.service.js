@@ -252,17 +252,17 @@ class YandexDiskService {
 
 const YANDEX_CONFIG = {
   // Client ID (из https://oauth.yandex.ru/client/new)
-  clientId: '8ad010616b6b41889f9daed684859764',
+  clientId: '52c92ec653874d10ac2a234e2ee7e8ea',
   
   // Client Secret (из https://oauth.yandex.ru/client/new)
-  clientSecret: '97d44a80579045ab844638a2bd8ecaae',
+  clientSecret: '7ecec89a55344b7cb9b9c5df44d3fe5c',
   
   // Redirect URI (должен совпадать с настройками в OAuth)
   // Для локальной разработки:
-  redirectUri: 'http://localhost:8000',
+  redirectUri: 'http://localhost:8000/yandex-auth-callback.html',
   
   // Для GitHub Pages (раскомментировать при публикации):
-  // redirectUri: 'https://kkav45.github.io',
+  // redirectUri: 'https://kkav45.github.io/yandex-auth-callback.html',
   
   // Корневая папка на Яндекс.Диске
   rootFolder: 'ASOPB'
