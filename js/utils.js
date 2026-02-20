@@ -24,12 +24,23 @@ function formatRelativeTime(date) {
   const minutes = Math.floor(diff / 60000);
   const hours = Math.floor(minutes / 60);
   const days = Math.floor(hours / 24);
-  
+
   if (minutes < 1) return 'только что';
   if (minutes < 60) return `${minutes} мин назад`;
   if (hours < 24) return `${hours} ч назад`;
   if (days < 7) return `${days} дн назад`;
   return formatDate(date, { year: 'numeric', month: '2-digit', day: '2-digit' });
+}
+
+// Форматирование даты и времени
+function formatDateTime(date) {
+  return new Date(date).toLocaleDateString('ru-RU', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
 }
 
 // Показ уведомления
@@ -205,3 +216,10 @@ function paginate(array, page = 1, pageSize = 10) {
     totalPages: Math.ceil(array.length / pageSize)
   };
 }
+
+// Экспорт функций в глобальную область
+window.formatDate = formatDate;
+window.formatDateTime = formatDateTime;
+window.formatRelativeTime = formatRelativeTime;
+window.generateId = generateId;
+window.showToast = showToast;

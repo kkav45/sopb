@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Яндекс.Диск - Авторизация</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #fc0 0%, #f9a800 100%);
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        
+        .icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #000;
+        }
+        
+        .message {
+            font-size: 16px;
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 30px;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f0f0f0;
+            border-top-color: #fc0;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .status.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .status.error {
+            background: #ffebee;
+            color: #c62828;
+        }
+        
+        .button {
+            display: inline-block;
+            padding: 15px 30px;
+            background: #fc0;
+            color: #000;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .button:hover {
+            background: #f9a800;
+            transform: translateY(-2px);
+        }
+        
+        .button:active {
+            transform: translateY(0);
+        }
+        
+        .debug-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f5f7fa;
+            border-radius: 8px;
+            font-size: 12px;
+            text-align: left;
+            display: none;
+        }
+        
+        .show-debug {
+            margin-top: 15px;
+            color: #999;
+            font-size: 14px;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">☁️</div>
+        
+        <div id="loading">
+            <div class="spinner"></div>
+            <h1>Обработка авторизации...</h1>
+            <p class="message">Пожалуйста, подождите</p>
+        </div>
+        
+        <div id="success" style="display: none;">
+            <div class="status success">
+                <span style="font-size: 24px">✓</span>
+                <span>Авторизация успешна!</span>
+            </div>
+            <h1>Яндекс.Диск подключён</h1>
+            <p class="message">Теперь вы можете вернуться в приложение</p>
+            <button class="button" onclick="closeWindow()">Закрыть окно</button>
+        </div>
+        
+        <div id="error" style="display: none;">
+            <div class="status error">
+                <span style="font-size: 24px">✗</span>
+                <span>Ошибка авторизации</span>
+            </div>
+            <h1>Что-то пошло не так</h1>
+            <p class="message" id="errorMessage">Не удалось получить токен доступа</p>
+            <button class="button" onclick="retryAuth()">Попробовать снова</button>
+        </div>
+        
+        <div class="show-debug" onclick="toggleDebug()">Показать техническую информацию</div>
+        
+        <div class="debug-info" id="debugInfo"></div>
+    </div>
+
+    <script>
+        // Основная логика обработки токена
+        document.addEventListener('DOMContentLoaded', function() {
+            handleAuthCallback();
+        });
+
+        function handleAuthCallback() {
+            const hash = window.location.hash;
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            console.log('[Auth Callback] Hash:', hash);
+            console.log('[Auth Callback] Search:', window.location.search);
+            
+            // Пробуем получить токен из hash (response_type=token)
+            let token = null;
+            let error = null;
+            
+            if (hash && hash.includes('access_token')) {
+                // Формат: #access_token=xxx&token_type=bearer&expires_in=31536000
+                const hashParams = new URLSearchParams(hash.substring(1));
+                token = hashParams.get('access_token');
+                error = hashParams.get('error');
+            } else if (urlParams.get('access_token')) {
+                // Формат: ?access_token=xxx&token_type=bearer&expires_in=31536000
+                token = urlParams.get('access_token');
+                error = urlParams.get('error');
+            }
+            
+            // Показываем debug информацию
+            showDebugInfo({
+                'URL': window.location.href,
+                'Hash': hash,
+                'Search': window.location.search,
+                'Token': token ? token.substring(0, 20) + '...' : 'Не найден',
+                'Error': error || 'Нет'
+            });
+            
+            if (error) {
+                showError('Ошибка от Яндекс: ' + error);
+                return;
+            }
+            
+            if (!token) {
+                showError('Токен не получен. Проверьте настройки OAuth приложения.');
+                return;
+            }
+            
+            // Токен получен успешно
+            processToken(token);
+        }
+        
+        function processToken(token) {
+            // Сохраняем токен в localStorage
+            localStorage.setItem('yandexDiskToken', token);
+            
+            // Показываем успех
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('success').style.display = 'block';
+            
+            // Если открыто в том же окне (не popup), перенаправляем назад
+            if (window.opener) {
+                // Отправляем токен родительскому окну
+                window.opener.postMessage({
+                    type: 'YANDEX_TOKEN',
+                    token: token
+                }, '*');
+                
+                // Закрываем через 2 секунды
+                setTimeout(() => {
+                    window.close();
+                }, 2000);
+            }
+        }
+        
+        function showError(message) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'block';
+            document.getElementById('errorMessage').textContent = message;
+        }
+        
+        function closeWindow() {
+            if (window.opener) {
+                window.opener.postMessage({ type: 'YANDEX_CLOSE' }, '*');
+            }
+            window.close();
+        }
+        
+        function retryAuth() {
+            // Перезагружаем страницу для повторной авторизации
+            window.location.href = window.location.pathname;
+        }
+        
+        function toggleDebug() {
+            const debugEl = document.getElementById('debugInfo');
+            debugEl.style.display = debugEl.style.display === 'block' ? 'none' : 'block';
+        }
+        
+        function showDebugInfo(info) {
+            const debugEl = document.getElementById('debugInfo');
+            let html = '<strong>Техническая информация:</strong><br><br>';
+            
+            for (const [key, value] of Object.entries(info)) {
+                html += `<strong>${key}:</strong> ${value}<br>`;
+            }
+            
+            debugEl.innerHTML = html;
+        }
+        
+        // Обработка сообщений от родительского окна
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'YANDEX_REQUEST_TOKEN') {
+                const hash = window.location.hash;
+                if (hash && hash.includes('access_token')) {
+                    window.opener.postMessage({
+                        type: 'YANDEX_TOKEN',
+                        hash: hash
+                    }, '*');
+                }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -4,7 +4,15 @@ class App {
   constructor() {
     // Инициализация сервисов
     this.localCache = new LocalCacheService();
-    this.syncManager = new SyncManagerService(null, this.localCache);
+    
+    // Инициализируем Яндекс.Диск если доступен
+    this.yandexDisk = null;
+    if (typeof YandexDiskService !== 'undefined') {
+      this.yandexDisk = new YandexDiskService(YANDEX_CONFIG);
+      window.yandexDisk = this.yandexDisk;
+    }
+    
+    this.syncManager = new SyncManagerService(this.yandexDisk, this.localCache);
     this.pdfGenerator = new PdfGeneratorService();
 
     // Данные приложения
@@ -30,25 +38,28 @@ class App {
     try {
       // Инициализация IndexedDB
       await this.localCache.init();
-      
+
+      // Обработка OAuth callback (если есть)
+      await this.handleOAuthCallback();
+
       // Загрузка данных
       await this.loadData();
-      
+
       // Обновление дашборда
       this.updateDashboard();
-      
+
       // Настройка навигации
       this.setupNavigation();
-      
+
       // Настройка модальных окон
       this.setupModals();
-      
+
       // Настройка синхронизации
       this.setupSync();
-      
+
       // Настройка обработчиков форм
       this.setupFormHandlers();
-      
+
       console.log('АСОПБ прототип инициализирован');
     } catch (error) {
       console.error('Ошибка инициализации:', error);
@@ -399,7 +410,7 @@ class App {
   handleSyncStatus(status, result) {
     const syncStatus = document.getElementById('syncStatus');
     const syncButton = document.getElementById('syncButton');
-    
+
     if (status === 'syncing') {
       syncStatus.innerHTML = '<span class="sync-icon spinning">🔄</span><span>Синхронизация...</span>';
       syncButton.disabled = true;
@@ -407,8 +418,12 @@ class App {
       syncStatus.innerHTML = '<span style="color: #28a745;">✓</span><span>Синхронизировано</span>';
       syncButton.disabled = false;
       this.lastSyncTime = new Date();
+      this.updateSyncStatusUI();
     } else if (status === 'error') {
       syncStatus.innerHTML = '<span style="color: #dc3545;">⚠</span><span>Ошибка синхронизации</span>';
+      syncButton.disabled = false;
+    } else if (status === 'local_only') {
+      syncStatus.innerHTML = '<span style="color: #6c757d;">💾</span><span>Локально</span>';
       syncButton.disabled = false;
     }
   }
@@ -419,15 +434,43 @@ class App {
   }
 
   handleOAuthCallback() {
-    const code = getUrlParam('code');
-    const error = getUrlParam('error');
+    const hash = window.location.hash;
+    const urlParams = new URLSearchParams(window.location.search);
     
+    // Проверяем, есть ли токен в hash (Implicit Flow)
+    if (hash && hash.includes('access_token')) {
+      const hashParams = new URLSearchParams(hash.substring(1));
+      const token = hashParams.get('access_token');
+      
+      if (token && this.yandexDisk) {
+        // Сохраняем токен
+        this.yandexDisk.token = {
+          accessToken: token,
+          refreshToken: null,
+          expiresAt: Date.now() + 31536000 * 1000 // 1 год
+        };
+        this.yandexDisk.saveToken();
+        
+        // Очищаем hash
+        window.history.replaceState({}, '', window.location.pathname);
+        
+        showToast('Яндекс.Диск подключён!', 'success');
+        this.updateYandexDiskUI();
+        this.syncManager.sync();
+      }
+      return;
+    }
+    
+    // Проверяем код авторизации (Authorization Code Flow)
+    const code = urlParams.get('code');
+    const error = urlParams.get('error');
+
     if (error) {
       showToast(`Ошибка авторизации: ${error}`, 'error');
       window.history.replaceState({}, '', window.location.pathname);
       return;
     }
-    
+
     if (code) {
       this.handleAuthCode(code);
     }
@@ -436,15 +479,16 @@ class App {
   async handleAuthCode(code) {
     try {
       showToast('Получение токена...', 'info');
-      await this.yandexDisk.exchangeCodeForToken(code);
+      // Для Implicit Flow токен обрабатывается в handleOAuthCallback
+      // Этот метод устарел, но оставляем для совместимости
       showToast('Яндекс.Диск подключён!', 'success');
-      
+
       // Очищаем URL
       window.history.replaceState({}, '', window.location.pathname);
-      
+
       // Обновляем UI
       this.updateYandexDiskUI();
-      
+
       // Загружаем данные с диска
       await this.syncManager.sync();
     } catch (error) {
@@ -454,16 +498,36 @@ class App {
   }
 
   updateYandexDiskUI() {
-    // Обновляем компоненты Яндекс.Диска
-    const components = document.querySelectorAll('#yandexDiskContainer, #yandexDiskSettings');
-    components.forEach(container => {
-      if (container && !container.innerHTML) {
-        new YandexDiskConnect(container.id, {
-          yandexDisk: this.yandexDisk,
-          onSync: () => this.syncManager.sync()
-        });
+    // Обновляем статус синхронизации в sidebar
+    this.updateSyncStatusUI();
+  }
+
+  updateSyncStatusUI() {
+    const syncStatus = document.getElementById('syncStatus');
+    if (!syncStatus) return;
+
+    if (this.yandexDisk && this.yandexDisk.isAuthenticated()) {
+      const tokenInfo = this.yandexDisk.getTokenInfo();
+      const expiresAt = tokenInfo?.expiresAt ? new Date(tokenInfo.expiresAt) : null;
+      const isExpired = expiresAt && Date.now() > expiresAt;
+
+      if (isExpired) {
+        syncStatus.innerHTML = `
+          <span class="sync-icon">⚠️</span>
+          <span class="sync-text">Требуется вход</span>
+        `;
+      } else {
+        syncStatus.innerHTML = `
+          <span class="sync-icon" style="color: #28a745;">✓</span>
+          <span class="sync-text" style="color: #28a745;">Яндекс.Диск</span>
+        `;
       }
-    });
+    } else {
+      syncStatus.innerHTML = `
+        <span class="sync-icon">🔴</span>
+        <span class="sync-text">Нет подключения</span>
+      `;
+    }
   }
 
   // ========== СТРАНИЦЫ ==========

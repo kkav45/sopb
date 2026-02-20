@@ -157,7 +157,7 @@ class LocalCacheService {
       id,
       action,
       path,
-      data,
+      data: data || null,
       createdAt: Date.now(),
       status: 'pending'
     };
@@ -167,15 +167,31 @@ class LocalCacheService {
   }
 
   async getPendingSyncItems() {
-    return new Promise((resolve, reject) => {
-      const tx = this.db.transaction('syncQueue', 'readonly');
-      const store = tx.objectStore('syncQueue');
-      const index = store.index('status');
-      const request = index.getAll('pending');
+    // Пробуем IndexedDB если доступен
+    if (this.db && !this.useLocalStorage) {
+      return new Promise((resolve, reject) => {
+        const tx = this.db.transaction('syncQueue', 'readonly');
+        const store = tx.objectStore('syncQueue');
+        const index = store.index('status');
+        const request = index.getAll('pending');
 
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = () => reject(request.error);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+    }
+
+    // Используем localStorage - ищем все элементы с status: 'pending'
+    const results = [];
+    const keys = this.storage.keys();
+    keys.forEach(key => {
+      if (key.startsWith('syncQueue_')) {
+        const data = this.storage.get(key);
+        if (data && data.status === 'pending') {
+          results.push(data);
+        }
+      }
     });
+    return results;
   }
 
   async updateSyncQueueStatus(id, status, error) {
@@ -220,6 +236,21 @@ class LocalCacheService {
       inspections: inspections.length,
       pendingSync: pendingSync.length
     };
+  }
+
+  // Получить размер хранилища
+  async getStorageSize() {
+    if (this.useLocalStorage) {
+      return this.storage.getSize();
+    }
+    // Для IndexedDB приблизительная оценка
+    const [objects, equipment, inspections] = await Promise.all([
+      this.getAll('objects'),
+      this.getAll('equipment'),
+      this.getAll('inspections')
+    ]);
+    const totalItems = objects.length + equipment.length + inspections.length;
+    return totalItems * 1024; // Примерно 1KB на запись
   }
 
   // ========== ОЧИСТКА ==========

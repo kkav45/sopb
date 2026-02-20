@@ -354,25 +354,95 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
   });
+
+  // ========== ЯНДЕКС.ДИСК ==========
   
-  // Инициализация компонента Яндекс.Диска на дашборде
-  setTimeout(() => {
-    const container = document.getElementById('yandexDiskContainer');
-    if (container && window.app?.yandexDisk) {
-      new YandexDiskConnect('yandexDiskContainer', {
-        yandexDisk: window.app.yandexDisk,
-        onSync: () => window.app.syncManager.sync()
-      });
+  // Кнопка подключения Яндекс.Диска
+  const connectYandexBtn = document.getElementById('connectYandexBtn');
+  if (connectYandexBtn) {
+    connectYandexBtn.addEventListener('click', () => {
+      if (!window.app?.yandexDisk) {
+        showToast('Сервис Яндекс.Диска не доступен', 'error');
+        return;
+      }
+      
+      const authUrl = window.app.yandexDisk.getAuthUrl();
+      // Открываем в новом окне для OAuth
+      const width = 600;
+      const height = 700;
+      const left = window.screen.width / 2 - width / 2;
+      const top = window.screen.height / 2 - height / 2;
+      
+      window.open(
+        authUrl,
+        'YandexAuth',
+        `width=${width},height=${height},left=${left},top=${top},menubar=no,toolbar=no,location=no`
+      );
+    });
+  }
+  
+  // Кнопка отключения от Яндекс.Диска
+  const disconnectYandexBtn = document.getElementById('disconnectYandexBtn');
+  if (disconnectYandexBtn) {
+    disconnectYandexBtn.addEventListener('click', async () => {
+      if (!window.app?.yandexDisk) return;
+      
+      if (confirm('Вы уверены, что хотите отключиться от Яндекс.Диска?')) {
+        await window.app.yandexDisk.disconnect();
+        window.app.updateSyncStatusUI();
+        updateYandexDiskSettingsUI();
+        showToast('Яндекс.Диск отключён', 'info');
+      }
+    });
+  }
+  
+  // Обновление UI Яндекс.Диска
+  function updateYandexDiskSettingsUI() {
+    const indicator = document.getElementById('yandexDiskIndicator');
+    const info = document.getElementById('yandexDiskInfo');
+    const connectBtn = document.getElementById('connectYandexBtn');
+    const disconnectBtn = document.getElementById('disconnectYandexBtn');
+    const lastSyncEl = document.getElementById('lastSyncTime');
+    
+    if (!window.app?.yandexDisk) {
+      if (indicator) {
+        indicator.innerHTML = '<span class="status-icon">🔴</span><span class="status-text">Не подключён</span>';
+      }
+      if (info) info.style.display = 'none';
+      if (connectBtn) connectBtn.style.display = 'inline-block';
+      if (disconnectBtn) disconnectBtn.style.display = 'none';
+      return;
     }
     
-    const settingsContainer = document.getElementById('yandexDiskSettings');
-    if (settingsContainer && window.app?.yandexDisk) {
-      new YandexDiskConnect('yandexDiskSettings', {
-        yandexDisk: window.app.yandexDisk,
-        onSync: () => window.app.syncManager.sync()
-      });
+    const isAuthenticated = window.app.yandexDisk.isAuthenticated();
+    
+    if (isAuthenticated) {
+      if (indicator) {
+        indicator.innerHTML = '<span class="status-icon" style="color: #28a745;">✓</span><span class="status-text">Подключено</span>';
+      }
+      if (info) info.style.display = 'block';
+      if (connectBtn) connectBtn.style.display = 'none';
+      if (disconnectBtn) disconnectBtn.style.display = 'inline-block';
+      
+      // Обновляем время последней синхронизации
+      const lastSync = window.app.syncManager.getLastSyncTime();
+      if (lastSyncEl) {
+        lastSyncEl.textContent = lastSync ? formatDateTime(lastSync) : '—';
+      }
+    } else {
+      if (indicator) {
+        indicator.innerHTML = '<span class="status-icon">🔴</span><span class="status-text">Не подключён</span>';
+      }
+      if (info) info.style.display = 'none';
+      if (connectBtn) connectBtn.style.display = 'inline-block';
+      if (disconnectBtn) disconnectBtn.style.display = 'none';
     }
-  }, 100);
+  }
+  
+  // Обновляем UI при загрузке
+  setTimeout(() => {
+    updateYandexDiskSettingsUI();
+  }, 500);
 });
 
 // Глобальные функции для доступа из HTML

@@ -256,6 +256,44 @@
         <div class="page-header">
           <h2>Настройки</h2>
         </div>
+        
+        <!-- Секция: Яндекс.Диск -->
+        <div class="settings-section">
+          <h3>☁️ Яндекс.Диск</h3>
+          <p>Синхронизация данных с облаком</p>
+          <div class="yandex-disk-settings" id="yandexDiskSettings">
+            <div class="yandex-disk-status" id="yandexDiskStatus">
+              <div class="status-indicator" id="yandexDiskIndicator">
+                <span class="status-icon">🔴</span>
+                <span class="status-text">Не подключён</span>
+              </div>
+              <div class="yandex-disk-actions">
+                <button class="btn btn-primary" id="connectYandexBtn">
+                  🔗 Подключить Яндекс.Диск
+                </button>
+                <button class="btn btn-secondary" id="disconnectYandexBtn" style="display: none;">
+                  🚫 Отключиться
+                </button>
+              </div>
+            </div>
+            <div class="yandex-disk-info" id="yandexDiskInfo" style="display: none;">
+              <div class="info-row">
+                <span class="info-label">Статус:</span>
+                <span class="info-value" id="yandexConnectionStatus">Подключено</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Последняя синхронизация:</span>
+                <span class="info-value" id="lastSyncTime">—</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Папка на диске:</span>
+                <span class="info-value">ASOPB/</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Секция: Общие настройки -->
         <div class="settings-section">
           <h3>Общие настройки</h3>
           <p>Параметры приложения</p>
@@ -659,6 +697,7 @@
   <script src="js/services/chart-service.js"></script>
   <script src="js/services/storage-service.js"></script>
   <script src="js/local-cache.service.js"></script>
+  <script src="js/yandex-disk.service.js"></script>
   <script src="js/sync-manager.service.js"></script>
   <script src="js/app.js"></script>
   <script src="js/pwa.js"></script>
