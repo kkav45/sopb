@@ -14,9 +14,13 @@ class YandexDiskService {
       response_type: 'token',  // Implicit Flow для клиентских приложений
       client_id: this.config.clientId,
       redirect_uri: this.config.redirectUri,
-      scope: 'disk:app_folder'
+      scope: 'disk:app_folder',
+      force_confirm: 'yes'  // Принудительно показать окно подтверждения
     });
-    return `https://oauth.yandex.ru/authorize?${params}`;
+    
+    const authUrl = `https://oauth.yandex.ru/authorize?${params}`;
+    console.log('[YandexDisk] Auth URL:', authUrl);
+    return authUrl;
   }
 
   // Обработка токена из callback (yandex-auth-callback.html)

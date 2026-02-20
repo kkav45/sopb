@@ -159,6 +159,13 @@
             <p class="message" id="errorMessage">Не удалось получить токен доступа</p>
             <button class="button" onclick="retryAuth()">Попробовать снова</button>
         </div>
+
+        <div id="manualAuth" style="display: none;">
+            <div class="icon">🔐</div>
+            <h1>Требуется авторизация</h1>
+            <p class="message">Нажмите кнопку ниже для подключения Яндекс.Диска</p>
+            <button class="button" onclick="startManualAuth()">🔗 Подключить Яндекс.Диск</button>
+        </div>
         
         <div class="show-debug" onclick="toggleDebug()">Показать техническую информацию</div>
         
@@ -184,44 +191,63 @@
         function handleAuthCallback() {
             const hash = window.location.hash;
             const urlParams = new URLSearchParams(window.location.search);
-            
+
+            console.log('[Auth Callback] Full URL:', window.location.href);
             console.log('[Auth Callback] Hash:', hash);
             console.log('[Auth Callback] Search:', window.location.search);
-            
+
             // Пробуем получить токен из hash (response_type=token)
             let token = null;
             let error = null;
-            
+            let errorDescription = null;
+
             if (hash && hash.includes('access_token')) {
                 // Формат: #access_token=xxx&token_type=bearer&expires_in=31536000
                 const hashParams = new URLSearchParams(hash.substring(1));
                 token = hashParams.get('access_token');
                 error = hashParams.get('error');
+                errorDescription = hashParams.get('error_description');
             } else if (urlParams.get('access_token')) {
                 // Формат: ?access_token=xxx&token_type=bearer&expires_in=31536000
                 token = urlParams.get('access_token');
                 error = urlParams.get('error');
+                errorDescription = urlParams.get('error_description');
+            } else if (urlParams.get('error')) {
+                // Ошибка пришла в query параметрах
+                error = urlParams.get('error');
+                errorDescription = urlParams.get('error_description');
+            } else if (hash && hash.includes('error')) {
+                // Ошибка в hash
+                const hashParams = new URLSearchParams(hash.substring(1));
+                error = hashParams.get('error');
+                errorDescription = hashParams.get('error_description');
             }
-            
+
             // Показываем debug информацию
             showDebugInfo({
                 'URL': window.location.href,
-                'Hash': hash,
-                'Search': window.location.search,
+                'Hash': hash || '(пустой)',
+                'Search': window.location.search || '(пустой)',
                 'Token': token ? token.substring(0, 20) + '...' : 'Не найден',
-                'Error': error || 'Нет'
+                'Error': error || 'Нет',
+                'Error Description': errorDescription || 'Нет'
             });
-            
+
             if (error) {
-                showError('Ошибка от Яндекс: ' + error);
+                const errorMsg = errorDescription || 'Ошибка от Яндекс: ' + error;
+                console.error('[Auth Callback] Error:', errorMsg);
+                showError(errorMsg);
                 return;
             }
-            
+
             if (!token) {
-                showError('Токен не получен. Проверьте настройки OAuth приложения.');
+                console.warn('[Auth Callback] Token not found. Redirecting to auth...');
+                // Токен не получен - возможно, пользователь ещё не авторизовался
+                // Показываем кнопку для ручной авторизации
+                showManualAuthButton();
                 return;
             }
-            
+
             // Токен получен успешно
             processToken(token);
         }
@@ -255,6 +281,25 @@
             document.getElementById('errorMessage').textContent = message;
         }
         
+        function showManualAuthButton() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('manualAuth').style.display = 'block';
+        }
+
+        function startManualAuth() {
+            // Конфигурация OAuth
+            const clientId = '4e7a93423bf645aaa0f82ab32f8b8f9f';
+            const redirectUri = 'https://kkav45.github.io/sopb/yandex-auth-callback.html';
+            
+            // Формируем URL для авторизации
+            const authUrl = `https://oauth.yandex.ru/authorize?response_type=token&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=disk:app_folder&force_confirm=yes`;
+            
+            console.log('[Manual Auth] Redirecting to:', authUrl);
+            
+            // Перенаправляем пользователя на страницу авторизации
+            window.location.href = authUrl;
+        }
+
         function closeWindow() {
             if (window.opener) {
                 window.opener.postMessage({ type: 'YANDEX_CLOSE' }, '*');
