@@ -35,6 +35,12 @@ class ChartService {
     const ctx = document.getElementById(canvasId);
     if (!ctx) return null;
 
+    // Уничтожаем существующий график если есть
+    if (this.charts[canvasId]) {
+      this.charts[canvasId].destroy();
+      delete this.charts[canvasId];
+    }
+
     const defaultOptions = {
       responsive: true,
       maintainAspectRatio: false,
@@ -84,6 +90,12 @@ class ChartService {
     const ctx = document.getElementById(canvasId);
     if (!ctx) return null;
 
+    // Уничтожаем существующий график если есть
+    if (this.charts[canvasId]) {
+      this.charts[canvasId].destroy();
+      delete this.charts[canvasId];
+    }
+
     const defaultOptions = {
       responsive: true,
       maintainAspectRatio: false,
@@ -125,6 +137,12 @@ class ChartService {
 
     const ctx = document.getElementById(canvasId);
     if (!ctx) return null;
+
+    // Уничтожаем существующий график если есть
+    if (this.charts[canvasId]) {
+      this.charts[canvasId].destroy();
+      delete this.charts[canvasId];
+    }
 
     const defaultOptions = {
       responsive: true,
@@ -169,6 +187,12 @@ class ChartService {
 
     const ctx = document.getElementById(canvasId);
     if (!ctx) return null;
+
+    // Уничтожаем существующий график если есть
+    if (this.charts[canvasId]) {
+      this.charts[canvasId].destroy();
+      delete this.charts[canvasId];
+    }
 
     const percentage = Math.min(100, Math.max(0, value));
     const color = this.getProgressColor(percentage);

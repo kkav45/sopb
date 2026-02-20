@@ -8,11 +8,15 @@ const STATIC_ASSETS = [
   '/js/utils.js',
   '/js/data/checklists.js',
   '/js/services/pdf-generator.service.js',
+  '/js/services/qr-service.js',
+  '/js/services/photo-service.js',
+  '/js/services/gantt-service.js',
+  '/js/services/chart-service.js',
+  '/js/services/storage-service.js',
   '/js/yandex-disk.service.js',
   '/js/local-cache.service.js',
   '/js/sync-manager.service.js',
   '/js/app.js',
-  '/js/components/yandex-disk-connect.js',
   '/js/main.js',
   '/fire.svg',
   '/manifest.json'
@@ -25,11 +29,27 @@ self.addEventListener('install', (event) => {
     caches.open(CACHE_NAME)
       .then((cache) => {
         console.log('[SW] Кэширование статических ресурсов');
-        return cache.addAll(STATIC_ASSETS);
+        // Кэшируем только существующие файлы
+        return Promise.all(
+          STATIC_ASSETS.map(async (url) => {
+            try {
+              const response = await fetch(url);
+              if (response.ok) {
+                await cache.put(url, response);
+                console.log('[SW] Закэшировано:', url);
+              }
+            } catch (error) {
+              console.warn('[SW] Не удалось закэшировать (файл может не существовать):', url, error.message);
+            }
+          })
+        );
       })
       .then(() => {
         console.log('[SW] Ресурсы закэшированы');
         return self.skipWaiting();
+      })
+      .catch((error) => {
+        console.error('[SW] Ошибка кэширования:', error);
       })
   );
 });
