@@ -50,8 +50,11 @@ class SyncManagerService {
 
     try {
       // Проверяем подключение к Яндекс.Диску
-      if (!this.yandexDisk || !await this.yandexDisk.isAuthenticated()) {
-        console.log('Яндекс.Диск не подключён, работаем локально');
+      const isAuthenticated = this.yandexDisk && await this.yandexDisk.isAuthenticated();
+      console.log('[SyncManager] Yandex Disk authenticated:', isAuthenticated);
+      
+      if (!isAuthenticated) {
+        console.log('[SyncManager] Яндекс.Диск не подключён, работаем локально');
         result.status = 'local_only';
         this.isSyncing = false;
         this.notifyStatus('local_only', result);
@@ -59,40 +62,47 @@ class SyncManagerService {
       }
 
       // Создаём корневую папку ASOPB если не существует
+      console.log('[SyncManager] Creating root folder ASOPB...');
       try {
         await this.yandexDisk.createFolder('');
+        console.log('[SyncManager] Root folder created/verified');
       } catch (error) {
-        console.log('Папка ASOPB уже существует или ошибка создания:', error.message);
+        console.log('[SyncManager] Folder exists or error:', error.message);
       }
 
       // 1. Отправляем изменения на Яндекс.Диск
       const pendingItems = await this.localCache.getPendingSyncItems();
+      console.log('[SyncManager] Pending sync items:', pendingItems.length);
 
       for (const item of pendingItems) {
         try {
+          console.log('[SyncManager] Syncing item:', item.path, 'action:', item.action);
+          
           // Создаём подпапку если нужно
           const folder = item.path.substring(0, item.path.lastIndexOf('/'));
           if (folder) {
             try {
               await this.yandexDisk.createFolder(folder);
             } catch (folderError) {
-              // Папка уже существует
+              console.log('[SyncManager] Folder exists:', folder);
             }
           }
 
           if (item.action === 'delete') {
             try {
               await this.yandexDisk.deleteFile(item.path);
+              console.log('[SyncManager] Deleted:', item.path);
             } catch (deleteError) {
-              // Файл не существует
+              console.log('[SyncManager] Delete error:', item.path);
             }
           } else {
             await this.yandexDisk.writeFile(item.path, item.data);
+            console.log('[SyncManager] Uploaded:', item.path);
           }
           await this.localCache.updateSyncQueueStatus(item.id, 'synced');
           result.uploaded++;
         } catch (error) {
-          console.error('Ошибка синхронизации файла:', item.path, error);
+          console.error('[SyncManager] Error syncing file:', item.path, error);
           result.errors.push({
             path: item.path,
             error: error.message

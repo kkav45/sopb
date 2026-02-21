@@ -119,15 +119,27 @@ class YandexDiskService {
     const folderPath = path ? `${this.config.rootFolder}/${path}` : this.config.rootFolder;
     const fullPath = `disk:/${folderPath}`;
     
+    console.log('[YandexDisk] Creating folder:', fullPath);
+
     try {
-      await this.request(`/resources?path=${encodeURIComponent(fullPath)}`, {
-        method: 'PUT'
+      const response = await fetch(`https://cloud-api.yandex.net/v1/disk/resources?path=${encodeURIComponent(fullPath)}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `OAuth ${this.token.accessToken}`,
+          'Content-Type': 'application/json'
+        }
       });
-    } catch (error) {
-      // Игнорируем ошибку, если папка уже существует (409 Conflict)
-      if (!error.message.includes('409')) {
-        throw error;
+
+      if (response.ok) {
+        console.log('[YandexDisk] Folder created:', fullPath);
+      } else if (response.status === 409) {
+        console.log('[YandexDisk] Folder already exists:', fullPath);
+      } else {
+        const error = await response.json().catch(() => ({ error: response.statusText }));
+        console.error('[YandexDisk] Error creating folder:', error);
       }
+    } catch (error) {
+      console.error('[YandexDisk] Exception creating folder:', error);
     }
   }
 
