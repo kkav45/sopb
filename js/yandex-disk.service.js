@@ -342,13 +342,21 @@ class YandexDiskService {
 
   // Проверка токена через API (для синхронизации)
   async validateTokenWithAPI() {
-    if (!this.token) return false;
+    if (!this.token) {
+      console.log('[YandexDisk] Validate API: No token');
+      return false;
+    }
+
+    console.log('[YandexDisk] Validate API: Checking token...');
+    console.log('[YandexDisk] Token expiresAt:', new Date(this.token.expiresAt).toISOString());
+    console.log('[YandexDisk] Token expired:', Date.now() >= this.token.expiresAt);
 
     try {
-      await this.request('/resources?limit=1');
+      const result = await this.request('/resources?limit=1');
+      console.log('[YandexDisk] Validate API: Success', result);
       return true;
     } catch (error) {
-      console.log('[YandexDisk] API validation failed:', error.message);
+      console.log('[YandexDisk] Validate API: Failed:', error.message);
       // Токен недействителен - удаляем
       this.disconnect();
       return false;

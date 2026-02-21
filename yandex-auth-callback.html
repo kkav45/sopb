@@ -253,13 +253,17 @@
         }
         
         function processToken(token) {
-            // Сохраняем токен в localStorage
-            localStorage.setItem('yandexDiskToken', token);
-            
+            // Сохраняем токен в localStorage (используем тот же ключ как в yandex-disk.service.js)
+            localStorage.setItem('yandex-disk-token', JSON.stringify({
+                accessToken: token,
+                refreshToken: null,
+                expiresAt: Date.now() + 31536000 * 1000 // 1 год
+            }));
+
             // Показываем успех
             document.getElementById('loading').style.display = 'none';
             document.getElementById('success').style.display = 'block';
-            
+
             // Если открыто в том же окне (не popup), перенаправляем назад
             if (window.opener) {
                 // Отправляем токен родительскому окну
@@ -267,7 +271,7 @@
                     type: 'YANDEX_TOKEN',
                     token: token
                 }, '*');
-                
+
                 // Закрываем через 2 секунды
                 setTimeout(() => {
                     window.close();
