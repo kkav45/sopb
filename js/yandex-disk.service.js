@@ -368,10 +368,10 @@ class YandexDiskService {
 
 const YANDEX_CONFIG = {
   // Client ID (из https://oauth.yandex.ru/client/new)
-  clientId: '4e7a93423bf645aaa0f82ab32f8b8f9f',
+  clientId: '2a94b6a0e172478fb391f58901a12446',
 
   // Client Secret (из https://oauth.yandex.ru/client/new)
-  clientSecret: '1e162828461949d89dbf21ebd8d061ab',
+  clientSecret: 'e0ba060b4e3546dab8a5f811d60fac4c',
 
   // Redirect URI (должен ТОЧНО совпадать с настройками в Яндекс OAuth)
   // Для GitHub Pages:
