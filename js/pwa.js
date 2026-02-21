@@ -10,6 +10,17 @@ class PWAService {
   }
 
   async init() {
+    // Service Worker работает только на HTTPS или localhost
+    const isLocalhost = window.location.hostname === 'localhost' || 
+                        window.location.hostname === '127.0.0.1' ||
+                        window.location.protocol === 'file:';
+    
+    if (isLocalhost) {
+      console.log('[PWA] Локальная разработка — Service Worker отключён');
+      this.updateOnlineStatus();
+      return;
+    }
+
     // Регистрация Service Worker
     if ('serviceWorker' in navigator) {
       try {
