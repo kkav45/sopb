@@ -14,14 +14,19 @@ class PWAService {
     if ('serviceWorker' in navigator) {
       try {
         // Путь к sw.js от корня домена
-        this.swRegistration = await navigator.serviceWorker.register('/sw.js');
+        const swUrl = '/sw.js?' + new Date().getTime(); // Добавляем timestamp для bypass кэша
+        this.swRegistration = await navigator.serviceWorker.register(swUrl);
         console.log('[PWA] Service Worker зарегистрирован:', this.swRegistration);
 
         // Проверка обновлений
         this.checkForUpdates();
       } catch (error) {
-        console.warn('[PWA] Service Worker не доступен:', error.message);
-        // Не блокируем работу приложения при ошибке SW
+        // Игнорируем ошибки SW - не блокируем работу приложения
+        console.info('[PWA] Service Worker не загружен. Возможные причины:');
+        console.info('  - Локальная разработка (file:// или localhost без HTTPS)');
+        console.info('  - Файл sw.js временно недоступен');
+        console.info('  - Браузер не поддерживает Service Workers');
+        console.info('Ошибка:', error.message);
       }
     }
 
