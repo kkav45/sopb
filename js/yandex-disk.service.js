@@ -14,7 +14,7 @@ class YandexDiskService {
       response_type: 'token',  // Implicit Flow для клиентских приложений
       client_id: this.config.clientId,
       redirect_uri: this.config.redirectUri,
-      scope: 'cloud_api:disk_app_folder',  // ✅ Разрешение из Яндекс OAuth
+      scope: 'disk:app_folder',  // ✅ Для Implicit Flow
       force_confirm: 'yes'  // Принудительно показать окно подтверждения
     });
 
@@ -396,8 +396,8 @@ const YANDEX_CONFIG = {
   // Корневая папка на Яндекс.Диске
   rootFolder: 'ASOPB',
 
-  // Scope для доступа к папке приложения (cloud_api:disk_app_folder)
-  scope: 'cloud_api:disk_app_folder'
+  // Scope для доступа к папке приложения
+  scope: 'disk:app_folder'
 };
 
 // ============================================================

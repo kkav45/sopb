@@ -296,8 +296,8 @@
             const redirectUri = 'https://kkav45.github.io/sopb/yandex-auth-callback.html';
 
             // Формируем URL для авторизации
-            // scope=cloud_api:disk_app_folder для доступа к папке приложения
-            const authUrl = `https://oauth.yandex.ru/authorize?response_type=token&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=cloud_api:disk_app_folder&force_confirm=yes`;
+            // disk:app_folder - для Implicit Flow (response_type=token)
+            const authUrl = `https://oauth.yandex.ru/authorize?response_type=token&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=disk:app_folder&force_confirm=yes`;
 
             console.log('[Manual Auth] Redirecting to:', authUrl);
 
