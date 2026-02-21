@@ -49,12 +49,12 @@ class SyncManagerService {
     };
 
     try {
-      // Проверяем подключение к Яндекс.Диску
-      const isAuthenticated = this.yandexDisk && await this.yandexDisk.isAuthenticated();
-      console.log('[SyncManager] Yandex Disk authenticated:', isAuthenticated);
+      // Проверяем подключение к Яндекс.Диску через API
+      const isAuthenticated = this.yandexDisk && await this.yandexDisk.validateTokenWithAPI();
+      console.log('[SyncManager] Yandex Disk API validation:', isAuthenticated);
       
       if (!isAuthenticated) {
-        console.log('[SyncManager] Яндекс.Диск не подключён, работаем локально');
+        console.log('[SyncManager] Яндекс.Диск не подключён или токен недействителен, работаем локально');
         result.status = 'local_only';
         this.isSyncing = false;
         this.notifyStatus('local_only', result);

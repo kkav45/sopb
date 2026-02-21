@@ -403,7 +403,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const connectBtn = document.getElementById('connectYandexBtn');
     const disconnectBtn = document.getElementById('disconnectYandexBtn');
     const lastSyncEl = document.getElementById('lastSyncTime');
-    
+
     if (!window.app?.yandexDisk) {
       if (indicator) {
         indicator.innerHTML = '<span class="status-icon">🔴</span><span class="status-text">Не подключён</span>';
@@ -413,23 +413,36 @@ document.addEventListener('DOMContentLoaded', () => {
       if (disconnectBtn) disconnectBtn.style.display = 'none';
       return;
     }
-    
-    const isAuthenticated = window.app.yandexDisk.isAuthenticated();
-    
-    if (isAuthenticated) {
+
+    // Проверяем наличие токена
+    const tokenInfo = window.app.yandexDisk.getTokenInfo();
+    const hasToken = !!tokenInfo;
+    const isExpired = tokenInfo && Date.now() >= tokenInfo.expiresAt;
+
+    if (hasToken && !isExpired) {
+      // Токен есть и действителен
       if (indicator) {
         indicator.innerHTML = '<span class="status-icon" style="color: #28a745;">✓</span><span class="status-text">Подключено</span>';
       }
       if (info) info.style.display = 'block';
       if (connectBtn) connectBtn.style.display = 'none';
       if (disconnectBtn) disconnectBtn.style.display = 'inline-block';
-      
+
       // Обновляем время последней синхронизации
       const lastSync = window.app.syncManager.getLastSyncTime();
       if (lastSyncEl) {
         lastSyncEl.textContent = lastSync ? formatDateTime(lastSync) : '—';
       }
+    } else if (hasToken && isExpired) {
+      // Токен истёк - показываем кнопку подключения
+      if (indicator) {
+        indicator.innerHTML = '<span class="status-icon" style="color: #ffc107;">⚠️</span><span class="status-text">Требуется вход</span>';
+      }
+      if (info) info.style.display = 'none';
+      if (connectBtn) connectBtn.style.display = 'inline-block';
+      if (disconnectBtn) disconnectBtn.style.display = 'inline-block';
     } else {
+      // Токена нет
       if (indicator) {
         indicator.innerHTML = '<span class="status-icon">🔴</span><span class="status-text">Не подключён</span>';
       }

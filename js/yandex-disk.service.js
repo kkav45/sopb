@@ -259,30 +259,51 @@ class YandexDiskService {
   }
 
   async isAuthenticated() {
-    if (!this.token) return false;
-    
-    // Проверяем срок действия токена
-    if (Date.now() >= this.token.expiresAt - 60000) {
-      // Токен истекает, пробуем обновить
-      if (this.token.refreshToken) {
-        try {
-          await this.refreshAccessToken();
-          return true;
-        } catch {
-          return false;
-        }
-      }
-      // Для Implicit Flow токен не обновляется, но проверяем не истёк ли
-      if (Date.now() >= this.token.expiresAt) {
-        return false;
-      }
+    if (!this.token) {
+      console.log('[YandexDisk] Not authenticated: no token');
+      return false;
     }
-    
-    // Быстрая проверка - делаем запрос к API
+
+    // Проверяем срок действия токена
+    if (Date.now() >= this.token.expiresAt) {
+      console.log('[YandexDisk] Token expired');
+      return false;
+    }
+
+    // Если токен истекает в ближайшие 5 минут, помечаем как неактивный
+    if (Date.now() >= this.token.expiresAt - 300000) {
+      console.log('[YandexDisk] Token expiring soon');
+      return false;
+    }
+
+    // Для Implicit Flow refreshToken отсутствует, проверяем по времени
+    if (!this.token.refreshToken) {
+      // Токен действителен, но не проверяли API
+      // Возвращаем true для UI, но синхронизация должна проверить API
+      return true;
+    }
+
+    // Есть refreshToken - пробуем обновить
+    try {
+      await this.refreshAccessToken();
+      return true;
+    } catch {
+      console.log('[YandexDisk] Token refresh failed');
+      return false;
+    }
+  }
+
+  // Проверка токена через API (для синхронизации)
+  async validateTokenWithAPI() {
+    if (!this.token) return false;
+
     try {
       await this.request('/resources?limit=1');
       return true;
-    } catch {
+    } catch (error) {
+      console.log('[YandexDisk] API validation failed:', error.message);
+      // Токен недействителен - удаляем
+      this.disconnect();
       return false;
     }
   }
