@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест OAuth scope - Яндекс.Диск</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+        body { padding: 40px; background: #f5f7fa; }
+        .container { max-width: 800px; margin: 0 auto; }
+        h1 { margin-bottom: 30px; color: #333; }
+        .card { background: white; padding: 25px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .card h2 { margin-bottom: 15px; color: #333; font-size: 18px; }
+        .scope-code { background: #f0f0f0; padding: 10px 15px; border-radius: 6px; font-family: monospace; font-size: 14px; margin-bottom: 15px; }
+        .btn { display: inline-block; padding: 12px 24px; background: #fc0; color: #000; text-decoration: none; border-radius: 8px; font-weight: 600; border: none; cursor: pointer; }
+        .btn:hover { background: #f9a800; }
+        .result { margin-top: 15px; padding: 12px; border-radius: 6px; font-size: 14px; }
+        .result.success { background: #e8f5e9; color: #2e7d32; }
+        .result.error { background: #ffebee; color: #c62828; }
+        .result.info { background: #e3f2fd; color: #1976d2; }
+        .log { background: #1e1e1e; color: #00ff00; padding: 15px; border-radius: 6px; font-family: monospace; font-size: 13px; margin-top: 15px; max-height: 300px; overflow-y: auto; }
+        .debug-info { margin-top: 20px; padding: 15px; background: #fff3cd; border-radius: 8px; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Тест OAuth scope для Яндекс.Диска</h1>
+        
+        <div class="debug-info">
+            <strong>📋 Инструкция:</strong>
+            <ol style="margin-top: 10px; padding-left: 20px;">
+                <li>Нажмите кнопку с разным scope</li>
+                <li>Разрешите доступ в окне Яндекса</li>
+                <li>Проверьте, какой scope работает</li>
+                <li>Успешный токен сохранится в localStorage</li>
+            </ol>
+        </div>
+
+        <div class="card">
+            <h2>Вариант 1: <code>disk:app_folder</code></h2>
+            <div class="scope-code">scope=disk:app_folder</div>
+            <button class="btn" onclick="testScope('disk:app_folder')">🔗 Тестировать</button>
+            <div id="result1" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="card">
+            <h2>Вариант 2: <code>cloud_api:disk_app_folder</code></h2>
+            <div class="scope-code">scope=cloud_api:disk_app_folder</div>
+            <button class="btn" onclick="testScope('cloud_api:disk_app_folder')">🔗 Тестировать</button>
+            <div id="result2" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="card">
+            <h2>Вариант 3: <code>disk</code> (полный доступ)</h2>
+            <div class="scope-code">scope=disk</div>
+            <button class="btn" onclick="testScope('disk')">🔗 Тестировать</button>
+            <div id="result3" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="log" id="log">
+            > Ожидание тестов...
+        </div>
+
+        <div class="card" style="margin-top: 20px;">
+            <h2>📦 Текущий токен в localStorage</h2>
+            <button class="btn" onclick="checkToken()" style="margin-bottom: 15px;">🔍 Проверить</button>
+            <button class="btn" onclick="clearToken()" style="background: #dc3545; color: white;">🗑️ Очистить</button>
+            <pre id="tokenInfo" style="margin-top: 15px; background: #f0f0f0; padding: 15px; border-radius: 6px; overflow-x: auto;"></pre>
+        </div>
+    </div>
+
+    <script>
+        const CLIENT_ID = '2a94b6a0e172478fb391f58901a12446';
+        const REDIRECT_URI = 'https://kkav45.github.io/sopb/yandex-auth-callback.html';
+
+        function log(message) {
+            const logEl = document.getElementById('log');
+            const time = new Date().toLocaleTimeString();
+            logEl.innerHTML += `\n> [${time}] ${message}`;
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        function testScope(scope) {
+            log(`Запуск теста со scope: ${scope}`);
+            
+            const params = new URLSearchParams({
+                response_type: 'token',
+                client_id: CLIENT_ID,
+                redirect_uri: REDIRECT_URI,
+                scope: scope,
+                force_confirm: 'yes'
+            });
+
+            const authUrl = `https://oauth.yandex.ru/authorize?${params}`;
+            log(`Открываем: ${authUrl.substring(0, 100)}...`);
+
+            // Открываем в новом окне
+            const popup = window.open(authUrl, '_blank', 'width=600,height=700');
+            
+            // Слушаем сообщения от popup
+            window.addEventListener('message', function handleMessage(event) {
+                if (event.data && event.data.type === 'YANDEX_TOKEN') {
+                    log(`✅ Токен получен для scope: ${scope}`);
+                    popup.close();
+                    showResult(scope, true, 'Токен успешно получен!');
+                    window.removeEventListener('message', handleMessage);
+                }
+            });
+
+            // Проверяем hash текущего окна (если открылось в том же окне)
+            setTimeout(() => {
+                const hash = window.location.hash;
+                if (hash && hash.includes('access_token')) {
+                    log(`✅ Токен получен (hash) для scope: ${scope}`);
+                    showResult(scope, true, 'Токен успешно получен!');
+                } else if (hash && hash.includes('error')) {
+                    const params = new URLSearchParams(hash.substring(1));
+                    const error = params.get('error');
+                    const errorDesc = params.get('error_description');
+                    log(`❌ Ошибка: ${error} - ${errorDesc}`);
+                    showResult(scope, false, `${error}: ${errorDesc}`);
+                }
+            }, 3000);
+        }
+
+        function showResult(scope, success, message) {
+            let resultId;
+            if (scope === 'disk:app_folder') resultId = 'result1';
+            else if (scope === 'cloud_api:disk_app_folder') resultId = 'result2';
+            else resultId = 'result3';
+
+            const el = document.getElementById(resultId);
+            el.style.display = 'block';
+            el.className = `result ${success ? 'success' : 'error'}`;
+            el.textContent = message;
+        }
+
+        function checkToken() {
+            const tokenStr = localStorage.getItem('yandex-disk-token');
+            const pre = document.getElementById('tokenInfo');
+            
+            if (!tokenStr) {
+                pre.textContent = 'Токен не найден';
+                log('Токен не найден в localStorage');
+                return;
+            }
+
+            try {
+                const token = JSON.parse(tokenStr);
+                const expiresAt = token.expiresAt ? new Date(token.expiresAt).toLocaleString() : 'Н/Д';
+                const isExpired = Date.now() >= token.expiresAt;
+                
+                pre.textContent = JSON.stringify({
+                    'Access Token': token.accessToken ? token.accessToken.substring(0, 30) + '...' : 'Нет',
+                    'Refresh Token': token.refreshToken ? 'Есть' : 'Нет',
+                    'Истекает': expiresAt,
+                    'Истёк': isExpired ? '❌ Да' : '✅ Нет'
+                }, null, 2);
+                
+                log('Токен найден: ' + (isExpired ? 'истёк' : 'действителен'));
+            } catch (e) {
+                pre.textContent = 'Ошибка чтения токена: ' + e.message;
+            }
+        }
+
+        function clearToken() {
+            localStorage.removeItem('yandex-disk-token');
+            document.getElementById('tokenInfo').textContent = 'Токен удалён';
+            log('Токен очищен из localStorage');
+        }
+
+        // Обработка callback после возврата от Яндекса
+        window.addEventListener('DOMContentLoaded', () => {
+            const hash = window.location.hash;
+            if (hash && hash.includes('access_token')) {
+                const params = new URLSearchParams(hash.substring(1));
+                const accessToken = params.get('access_token');
+                const expiresIn = params.get('expires_in');
+
+                if (accessToken) {
+                    localStorage.setItem('yandex-disk-token', JSON.stringify({
+                        accessToken: accessToken,
+                        refreshToken: null,
+                        expiresAt: Date.now() + (parseInt(expiresIn) || 31536000) * 1000
+                    }));
+
+                    log('✅ Токен сохранён в localStorage');
+                    
+                    // Очищаем hash
+                    window.history.replaceState({}, '', window.location.pathname);
+                    
+                    // Показываем успех
+                    alert('✅ Авторизация успешна!\nТокен сохранён в localStorage.');
+                }
+            } else if (hash && hash.includes('error')) {
+                const params = new URLSearchParams(hash.substring(1));
+                const error = params.get('error');
+                const errorDesc = params.get('error_description');
+                
+                log(`❌ Ошибка авторизации: ${error} - ${errorDesc}`);
+                alert(`❌ Ошибка авторизации\n\n${error}: ${errorDesc}`);
+                
+                // Очищаем hash
+                window.history.replaceState({}, '', window.location.pathname);
+            }
+
+            checkToken();
+        });
+    </script>
+</body>
+</html>

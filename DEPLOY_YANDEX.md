@@ -27,9 +27,10 @@ copy asopb-html-prototype/yandex-auth-callback.html .
 
 ```javascript
 const YANDEX_CONFIG = {
-  clientId: '4e7a93423bf645aaa0f82ab32f8b8f9f',
-  clientSecret: '1e162828461949d89dbf21ebd8d061ab',
+  clientId: '2a94b6a0e172478fb391f58901a12446',
+  clientSecret: 'e0ba060b4e3546dab8a5f811d60fac4c',
   redirectUri: 'https://kkav45.github.io/sopb/yandex-auth-callback.html',
+  scope: 'cloud_api:disk_app_folder',  // cloud_api:disk_app_folder
   rootFolder: 'ASOPB'
 };
 ```
@@ -41,13 +42,13 @@ const YANDEX_CONFIG = {
 ### Шаг 1: Проверка OAuth приложения
 
 1. Перейдите в [Яндекс OAuth](https://oauth.yandex.ru/clients)
-2. Найдите приложение с Client ID: `4e7a93423bf645aaa0f82ab32f8b8f9f`
+2. Найдите приложение с Client ID: `2a94b6a0e172478fb391f58901a12446`
 3. Проверьте **Redirect URI**:
    ```
    https://kkav45.github.io/sopb/yandex-auth-callback.html
    ```
 4. Проверьте разрешения:
-   - ✅ `disk:app_folder` — Доступ к папке приложения
+   - ✅ `cloud_api:disk_app_folder` — Доступ к папке приложения
 
 ### Шаг 2: Добавление файлов в репозиторий
 

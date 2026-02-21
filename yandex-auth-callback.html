@@ -292,14 +292,15 @@
 
         function startManualAuth() {
             // Конфигурация OAuth
-            const clientId = '4e7a93423bf645aaa0f82ab32f8b8f9f';
+            const clientId = '2a94b6a0e172478fb391f58901a12446';
             const redirectUri = 'https://kkav45.github.io/sopb/yandex-auth-callback.html';
-            
+
             // Формируем URL для авторизации
-            const authUrl = `https://oauth.yandex.ru/authorize?response_type=token&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=disk:app_folder&force_confirm=yes`;
-            
+            // scope=cloud_api:disk_app_folder для доступа к папке приложения
+            const authUrl = `https://oauth.yandex.ru/authorize?response_type=token&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=cloud_api:disk_app_folder&force_confirm=yes`;
+
             console.log('[Manual Auth] Redirecting to:', authUrl);
-            
+
             // Перенаправляем пользователя на страницу авторизации
             window.location.href = authUrl;
         }

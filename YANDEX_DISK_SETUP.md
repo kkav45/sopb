@@ -38,8 +38,9 @@
 ### 1.2 Получение Client ID
 
 После сохранения вы получите:
-- **Client ID** (например: `4e7a93423bf645aaa0f82ab32f8b8f9f`)
-- **Client Secret** (например: `1e162828461949d89dbf21ebd8d061ab`)
+- **Client ID**: `2a94b6a0e172478fb391f58901a12446`
+- **Client Secret**: `e0ba060b4e3546dab8a5f811d60fac4c`
+- **Разрешение**: `cloud_api:disk_app_folder`
 
 ---
 
@@ -51,9 +52,10 @@
 
 ```javascript
 const YANDEX_CONFIG = {
-  clientId: 'ВАШ_CLIENT_ID',
-  clientSecret: 'ВАШ_CLIENT_SECRET',
+  clientId: '2a94b6a0e172478fb391f58901a12446',
+  clientSecret: 'e0ba060b4e3546dab8a5f811d60fac4c',
   redirectUri: 'https://kkav45.github.io/sopb/yandex-auth-callback.html',
+  scope: 'cloud_api:disk_app_folder',  // cloud_api:disk_app_folder
   rootFolder: 'ASOPB'
 };
 ```

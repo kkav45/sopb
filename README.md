@@ -54,22 +54,23 @@ http-server -p 8000
    - **Название**: АСОПБ
    - **Платформа**: Веб-сервисы
    - **Redirect URI**: `http://localhost:8000` (или ваш URL)
-   - **Разрешения**: 
-     - ✓ `disk:app_folder` — доступ к папке приложения
+   - **Разрешения**:
+     - ✓ `cloud_api:disk_app_folder` — доступ к папке приложения
 
 4. Сохраните:
-   - **Client ID** (ID приложения)
-   - **Client Secret** (Секретный ключ)
+   - **Client ID**: `2a94b6a0e172478fb391f58901a12446`
+   - **Client Secret**: `e0ba060b4e3546dab8a5f811d60fac4c`
 
 ### Настройка в коде
 
-Откройте `js/yandex-disk.service.js` и замените:
+Откройте `js/yandex-disk.service.js` и проверьте конфигурацию:
 
 ```javascript
 const YANDEX_CONFIG = {
-  clientId: 'YOUR_CLIENT_ID',        // Вставьте ваш Client ID
-  clientSecret: 'YOUR_CLIENT_SECRET', // Вставьте ваш Client Secret
-  redirectUri: window.location.origin + '/auth/yandex/callback',
+  clientId: '2a94b6a0e172478fb391f58901a12446',
+  clientSecret: 'e0ba060b4e3546dab8a5f811d60fac4c',
+  redirectUri: 'https://kkav45.github.io/sopb/yandex-auth-callback.html',
+  scope: 'cloud_api:disk_app_folder',  // cloud_api:disk_app_folder
   rootFolder: 'ASOPB'
 };
 ```

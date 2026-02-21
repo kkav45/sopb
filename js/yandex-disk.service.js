@@ -14,7 +14,7 @@ class YandexDiskService {
       response_type: 'token',  // Implicit Flow для клиентских приложений
       client_id: this.config.clientId,
       redirect_uri: this.config.redirectUri,
-      scope: 'disk',  // Общий доступ к Яндекс.Диску
+      scope: 'cloud_api:disk_app_folder',  // ✅ Разрешение из Яндекс OAuth
       force_confirm: 'yes'  // Принудительно показать окно подтверждения
     });
 
@@ -117,7 +117,7 @@ class YandexDiskService {
   // Создание всех необходимых папок при первом подключении
   async createAppFolders() {
     console.log('[YandexDisk] Creating application folders...');
-    
+
     const folders = [
       '',                    // Корневая папка ASOPB
       'objects',            // Объекты
@@ -130,7 +130,7 @@ class YandexDiskService {
     for (const folder of folders) {
       await this.createFolder(folder);
     }
-    
+
     console.log('[YandexDisk] All folders created/verified');
   }
 
@@ -165,7 +165,7 @@ class YandexDiskService {
     // Если путь пустой, создаём корневую папку
     const folderPath = path ? `${this.config.rootFolder}/${path}` : this.config.rootFolder;
     const fullPath = `disk:/${folderPath}`;
-    
+
     console.log('[YandexDisk] Creating folder:', fullPath);
 
     try {
@@ -193,7 +193,7 @@ class YandexDiskService {
   async readFile(path) {
     const fullPath = `disk:/${this.config.rootFolder}/${path}`;
     const { file } = await this.request(`/resources/download?path=${encodeURIComponent(fullPath)}`);
-    
+
     const response = await fetch(file);
     if (!response.ok) {
       throw new Error('Failed to download file');
@@ -240,7 +240,7 @@ class YandexDiskService {
   async listFiles(path = '') {
     const fullPath = `disk:/${this.config.rootFolder}/${path}`;
     const result = await this.request(`/resources?path=${encodeURIComponent(fullPath)}&limit=100`);
-    
+
     if (!result._embedded?.items) {
       return [];
     }
@@ -269,10 +269,10 @@ class YandexDiskService {
 
   async syncFile(path, localData) {
     const exists = await this.fileExists(path);
-    
+
     if (exists) {
       const remoteData = await this.readFile(path);
-      
+
       if (localData.version > remoteData.version) {
         await this.writeFile(path, localData);
       } else if (localData.version < remoteData.version) {
@@ -373,12 +373,20 @@ class YandexDiskService {
 // ============================================================
 // Инструкция: YANDEX_QUICKSTART.md
 // Регистрация OAuth: https://oauth.yandex.ru/client/new
+//
+// OAuth приложение:
+// - Client ID: 2a94b6a0e172478fb391f58901a12446
+// - Client Secret: e0ba060b4e3546dab8a5f811d60fac4c
+// - Разрешения: cloud_api:disk_app_folder
+// - Redirect URI: https://kkav45.github.io/sopb/yandex-auth-callback.html
 
 const YANDEX_CONFIG = {
   // Client ID (из https://oauth.yandex.ru/client/new)
   clientId: '2a94b6a0e172478fb391f58901a12446',
 
   // Client Secret (из https://oauth.yandex.ru/client/new)
+  // ⚠️ НЕ ПЕРЕДАВАТЬ на клиент! Используется только для серверной авторизации.
+  // Для Implicit Flow (response_type=token) clientSecret не требуется.
   clientSecret: 'e0ba060b4e3546dab8a5f811d60fac4c',
 
   // Redirect URI (должен ТОЧНО совпадать с настройками в Яндекс OAuth)
@@ -386,7 +394,10 @@ const YANDEX_CONFIG = {
   redirectUri: 'https://kkav45.github.io/sopb/yandex-auth-callback.html',
 
   // Корневая папка на Яндекс.Диске
-  rootFolder: 'ASOPB'
+  rootFolder: 'ASOPB',
+
+  // Scope для доступа к папке приложения (cloud_api:disk_app_folder)
+  scope: 'cloud_api:disk_app_folder'
 };
 
 // ============================================================

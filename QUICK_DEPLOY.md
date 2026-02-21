@@ -3,9 +3,10 @@
 ## ✅ Готовые данные OAuth
 
 Ваше приложение уже зарегистрировано:
-- **Client ID:** `4e7a93423bf645aaa0f82ab32f8b8f9f`
-- **Client Secret:** `1e162828461949d89dbf21ebd8d061ab`
+- **Client ID:** `2a94b6a0e172478fb391f58901a12446`
+- **Client Secret:** `e0ba060b4e3546dab8a5f811d60fac4c`
 - **Redirect URI:** `https://kkav45.github.io/sopb/yandex-auth-callback.html`
+- **Разрешение:** `cloud_api:disk_app_folder`
 
 ---
 
@@ -105,7 +106,7 @@ ASOPB/
 ## 🐛 Если что-то пошло не так
 
 ### Ошибка "Redirect URI mismatch"
-Проверьте в [Яндекс OAuth](https://oauth.yandex.ru/client/4e7a93423bf645aaa0f82ab32f8b8f9f), что Redirect URI:
+Проверьте в [Яндекс OAuth](https://oauth.yandex.ru/client/2a94b6a0e172478fb391f58901a12446), что Redirect URI:
 ```
 https://kkav45.github.io/sopb/yandex-auth-callback.html
 ```
