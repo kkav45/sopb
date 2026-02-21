@@ -114,6 +114,53 @@ class YandexDiskService {
     return response.json();
   }
 
+  // Создание всех необходимых папок при первом подключении
+  async createAppFolders() {
+    console.log('[YandexDisk] Creating application folders...');
+    
+    const folders = [
+      '',                    // Корневая папка ASOPB
+      'objects',            // Объекты
+      'equipment',          // Оборудование
+      'inspections',        // Проверки
+      'violations',         // Нарушения
+      'metadata'            // Метаданные
+    ];
+
+    for (const folder of folders) {
+      await this.createFolder(folder);
+    }
+    
+    console.log('[YandexDisk] All folders created/verified');
+  }
+
+  // Проверка структуры папок
+  async checkFolderStructure() {
+    const requiredFolders = [
+      'objects',
+      'equipment',
+      'inspections',
+      'violations'
+    ];
+
+    const missing = [];
+
+    for (const folder of requiredFolders) {
+      const exists = await this.fileExists(folder);
+      if (!exists) {
+        missing.push(folder);
+      }
+    }
+
+    if (missing.length > 0) {
+      console.log('[YandexDisk] Missing folders:', missing);
+      await this.createAppFolders();
+      return false;
+    }
+
+    return true;
+  }
+
   async createFolder(path) {
     // Если путь пустой, создаём корневую папку
     const folderPath = path ? `${this.config.rootFolder}/${path}` : this.config.rootFolder;

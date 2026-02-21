@@ -61,13 +61,13 @@ class SyncManagerService {
         return result;
       }
 
-      // Создаём корневую папку ASOPB если не существует
-      console.log('[SyncManager] Creating root folder ASOPB...');
+      // Создаём все необходимые папки при первом подключении
+      console.log('[SyncManager] Creating application folders...');
       try {
-        await this.yandexDisk.createFolder('');
-        console.log('[SyncManager] Root folder created/verified');
+        await this.yandexDisk.createAppFolders();
+        console.log('[SyncManager] All folders created/verified');
       } catch (error) {
-        console.log('[SyncManager] Folder exists or error:', error.message);
+        console.log('[SyncManager] Error creating folders:', error.message);
       }
 
       // 1. Отправляем изменения на Яндекс.Диск
